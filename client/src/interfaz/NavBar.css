@@ -1,0 +1,37 @@
+.header{
+    background-color: #333;
+    padding : 10px;
+    display: flex;
+    align-items: center;
+    border-radius: 5px;
+    justify-content: space-between; /* para que los botones estén bien distribuidos */
+}
+
+.header button{
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+    margin-right: 10px;
+    transition: transform 0.3s ease-in-out; 
+}
+
+.header button:active{
+    transform: scale(0.9);
+}
+
+#openButton{
+    background-color: #007bff;
+}
+
+#openButton:hover{
+    background-color: #0b7dda;
+}
+
+#runButton{
+    background-color: #5cb85c;
+    margin-left: auto;
+}
+
+#runButton:hover {
+    background-color: #4cae4c;
+}
