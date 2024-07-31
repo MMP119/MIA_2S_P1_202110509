@@ -1,83 +1,42 @@
 // eslint-disable-next-line no-unused-vars
-import React, { useEffect, useState } from 'react';
-import './Editor.css';
-import NavBar from './NavBar';
+import React, { useRef, useEffect } from 'react';
+import { EditorView } from '@codemirror/view';
+import { EditorState } from '@codemirror/state';
+import { basicSetup } from 'codemirror';
+import { javascript } from '@codemirror/lang-javascript';
+import { oneDark } from '@codemirror/theme-one-dark';
 
-function Editor() {
+// Componente Editor
+// eslint-disable-next-line react/prop-types
+const Editor = ({ code, setCode }) => {
+  const editorRef = useRef(null);
 
-    const[code, setCode] = useState(''); // Estado para el código
-    const [consoleContent, setConsoleContent] = useState(''); // Estado para el contenido de la consola
+  useEffect(() => {
+    if (editorRef.current) {
+      const editorView = new EditorView({
+        state: EditorState.create({
+          doc: code,
+          extensions: [
+            basicSetup,
+            javascript(),
+            oneDark, // Aplica el tema como una extensión
+            EditorView.updateListener.of(update => {
+              if (update.docChanged) {
+                setCode(update.state.doc.toString());
+              }
+            })
+          ]
+        }),
+        parent: editorRef.current
+      });
 
-    const handleFileLoad = (content) => {
-        setCode(content);
-    };
+      return () => {
+        editorView.destroy();
+      };
+    }
+  }, [code, setCode]);
 
-    const updateLineNumbers = (textarea, lineNumberElement) => {
-        const lines = textarea.value.split('\n').length;
-        lineNumberElement.innerHTML = Array.from({ length: lines }, (_, i) => `<span>${i + 1}</span>`).join('');
-    };
-
-    const syncScroll = (textarea, lineNumberElement) => {
-        lineNumberElement.scrollTop = textarea.scrollTop;
-    };
-    
-    //--------------------------------------------------------------------------------
-    useEffect(() => {
-    const codeInput = document.getElementById('codeInput');
-    const consoleOutput = document.getElementById('consoleOutput');
-    const lineNumbers = document.getElementById('lineNumbers');
-    const consoleLineNumbers = document.getElementById('consoleLineNumbers');
-
-    codeInput.addEventListener('input', () => updateLineNumbers(codeInput, lineNumbers)); // Actualizar los números de línea
-    codeInput.addEventListener('scroll', () => syncScroll(codeInput, lineNumbers)); // Sincronizar el scroll
-    consoleOutput.addEventListener('input', () => updateLineNumbers(consoleOutput, consoleLineNumbers)); // Actualizar los números de línea
-    consoleOutput.addEventListener('scroll', () => syncScroll(consoleOutput, consoleLineNumbers)); // Sincronizar el scroll
-
-    // Inicializar los números de línea
-    updateLineNumbers(codeInput, lineNumbers); // Números de línea del editor de código
-    updateLineNumbers(consoleOutput, consoleLineNumbers); // Números de línea de la consola
-
-    // Limpiar los event listeners al desmontar el componente
-    return () => {
-        codeInput.removeEventListener('input', () => updateLineNumbers(codeInput, lineNumbers)); 
-        codeInput.removeEventListener('scroll', () => syncScroll(codeInput, lineNumbers));
-        consoleOutput.removeEventListener('input', () => updateLineNumbers(consoleOutput, consoleLineNumbers));
-        consoleOutput.removeEventListener('scroll', () => syncScroll(consoleOutput, consoleLineNumbers));
-    };
-    }, []);
-
-    //--------------------------------------------------------------------------------
-    // Actualizar los números de línea AL cargar un archivo
-
-    useEffect(() => {
-        const codeInput = document.getElementById('codeInput');
-        const lineNumbers = document.getElementById('lineNumbers');
-
-        //actualiozar los números de línea al cargar un archivo
-        if(codeInput){
-            updateLineNumbers(codeInput, lineNumbers);
-        }
-
-    }, [code]);
-
-
-    //--------------------------------------------------------------------------------
-
-    return (
-    <div className="editor">
-        <NavBar onFileLoad={handleFileLoad}/> {/* pasa la función handleFileLoad como prop */}
-        <div className="main">
-        <div className="entrada">
-            <div className="line-numbers" id="lineNumbers"></div>
-            <textarea id="codeInput" placeholder="Write your command here..." value={code} onChange={(e) => setCode(e.target.value)}></textarea>
-        </div>
-        <div className="console">
-            <div className="line-numbers" id="consoleLineNumbers"></div>
-            <textarea id="consoleOutput" readOnly placeholder="Console output..." value={consoleContent} onChange={(e) => setConsoleContent(e.target.value)}></textarea>
-        </div>
-        </div>
-    </div>
-    );
-}
+  return <div ref={editorRef} className="code-editor" />;
+};
 
 export default Editor;

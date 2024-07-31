@@ -3,7 +3,7 @@ import './NavBar.css';
 import React, {useRef} from 'react';
 
 // eslint-disable-next-line react/prop-types
-function NavBar({onFileLoad}){
+function NavBar({onFileLoad, onClear, onRun}){ // se crea la función NavBar con los parámetros onFileLoad, onClear y onRun que son props que se pasan desde App.jsx
 
     const fileInputRef = useRef(null); // constante para manejar el archivo
 
@@ -24,28 +24,6 @@ function NavBar({onFileLoad}){
         }
     };
 
-    const handleClearClick = () => { // constante para manejar el click en limpiar
-
-        document.getElementById('codeInput').value = '';
-        document.getElementById('consoleOutput').value = '';
-
-        // Limpiar los números de línea
-        const lineNumbers = document.getElementById('lineNumbers');
-        const consoleLineNumbers = document.getElementById('consoleLineNumbers');
-        lineNumbers.innerHTML = '1';
-        consoleLineNumbers.innerHTML = '1';
-
-    }
-
-    const handleRunClick = () => { // constante para manejar el click en run
-
-        //poner el código en la consola
-        const codeInput = document.getElementById('codeInput');
-        const consoleOutput = document.getElementById('consoleOutput');
-        consoleOutput.value = codeInput.value;
-
-    }
-
     return (
         <div className="header">
             <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
@@ -56,8 +34,8 @@ function NavBar({onFileLoad}){
                 style={{display: 'none'}}
                 onChange={handleFileChange}
             />
-            <button id="clearButton" onClick={handleClearClick}>Clear <span className="material-symbols-outlined">mop</span></button>
-            <button id="runButton" onClick={handleRunClick}>Run <span className="material-symbols-outlined">play_arrow</span> </button>
+            <button id="clearButton" onClick={onClear}>Clear <span className="material-symbols-outlined">mop</span></button>
+            <button id="runButton" onClick={onRun}>Run <span className="material-symbols-outlined">play_arrow</span> </button>
         </div>
     );
 }

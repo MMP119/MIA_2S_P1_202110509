@@ -1,4 +1,65 @@
 #root {
-  max-width: 1280px;
+  max-width: 1480px;
   margin: 0 auto;
+}
+
+.main{
+  display: flex;
+  flex-direction: column;
+}
+
+.code-editor {
+  height: 380px;
+  border: 1px solid #282c34; 
+  border-radius: 4px; 
+  font-size: 16px; 
+  background-color: #282c34;
+  color: white; 
+  margin-top: 10px;
+  overflow: auto;
+  outline: none;
+}
+
+.cm-editor{
+  height: 100%;
+  border: none;
+}
+
+.cm-content {
+  caret-color: white; /* Cambia el color del cursor */
+  padding: 0;
+  margin: 0;
+}
+
+.cm-scroller {
+  overflow: auto;
+}
+
+.cm-line {
+  padding-right: 0 !important;
+}
+
+.cm-wrap {
+  border: none;
+}
+
+.cm-gutters {
+  background-color: #282c34;
+  color: white;
+  border-right: 1px solid #ddd;
+}
+
+textarea.console-output {
+  width: 1457px;
+  height: 300px;
+  margin-top: 10px;
+  font-size: 16px;
+  padding: 10px;
+  border-radius: 4px;
+  background-color: #282c34;
+  color: white;
+  white-space: pre; /* para que se respeten los saltos de línea */
+  overflow: auto;
+  resize: none;
+  border: 1px solid #282c34;
 }
