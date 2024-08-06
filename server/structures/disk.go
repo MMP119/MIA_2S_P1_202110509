@@ -79,3 +79,14 @@ func writeToFile(file *os.File, sizeInBytes int) error {
 	return nil
 
 }
+
+
+//DeleteBinaryFile elimina un archivo binario
+func DeleteBinaryFile(path string) error {
+	err := os.Remove(path)
+	if err != nil {
+		return fmt.Errorf("error: no se pudo eliminar el disco: '%s'", err)
+	}
+	fmt.Println("Disco eliminado exitosamente")
+	return nil
+}

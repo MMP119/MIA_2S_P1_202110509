@@ -29,7 +29,7 @@ func Analyzer(input string) (interface{}, error){ //retorna un interface{} y un 
 			return commands.ParseMkdisk(words[1:])
 
 		case "rmdisk":
-			return nil, errors.New("comando rmdisk no implementado")
+			return commands.ParseRmDisk(words[1:])
 
 		case "fdisk":
 			return nil, errors.New("comando fdisk no implementado")
