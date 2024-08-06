@@ -1,38 +1,112 @@
 // eslint-disable-next-line no-unused-vars
-import React, { useState } from 'react';
-import NavBar from './interfaz/NavBar';
-import Editor from './interfaz/Editor';
+import React, { useState, useEffect, useRef } from 'react';
 import './App.css';
 
-function App(){
+function App() {
+  const codeInputRef = useRef(null);
+  const consoleOutputRef = useRef(null);
+  const editorRef = useRef(null);
+  const consoleEditorRef = useRef(null);
 
-  const [code, setCode] = useState(''); // Estado para el código
-  const [consoleOutput, setConsoleOutput] = useState(''); // Estado para la salida de la consola
+  useEffect(() => {
+    // Inicializa CodeMirror en el textarea con id 'codeInput'
+    if (codeInputRef.current && !editorRef.current) {
+      // eslint-disable-next-line no-undef
+      editorRef.current = CodeMirror.fromTextArea(codeInputRef.current, {
+        lineNumbers: true,
+        mode: 'javascript',
+        theme: 'dracula',
+        viewportMargin: Infinity,
+      });
 
-  const handleFileLoad = (content) => { // Función para manejar la carga de un archivo
-    setCode(content);
-  };
+      editorRef.current.getWrapperElement().style.fontSize = '18px';
+    }
 
-  const handleClear = () => { // Función para manejar el click en limpiar
-    setCode('');
-    setConsoleOutput('');
-  };
+    // Inicializa CodeMirror en el textarea con id 'consoleOutput'
+    if (consoleOutputRef.current && !consoleEditorRef.current) {
+      // eslint-disable-next-line no-undef
+      consoleEditorRef.current = CodeMirror.fromTextArea(consoleOutputRef.current, {
+        lineNumbers: false,
+        mode: 'text/plain',
+        theme: 'dracula',
+        readOnly: true,
+        viewportMargin: Infinity,
+      });
+      consoleEditorRef.current.getWrapperElement().style.fontSize = '18px';
+    }
 
-  const handleRun = () => { // Función para manejar el click en run
-    setConsoleOutput(code);
-  }
+    const openButton = document.getElementById('openButton');
+    const runButton = document.getElementById('runButton');
+    const clearButton = document.getElementById('clearButton');
+
+    // función para el botón 'open'
+    const openFile = () => {
+      var input = document.createElement('input');
+      input.type = 'file';
+      input.onchange = e => {
+        var file = e.target.files[0];
+        var reader = new FileReader();
+        reader.readAsText(file, 'UTF-8');
+        reader.onload = readerEvent => {
+          var content = readerEvent.target.result;
+          editorRef.current.setValue(content);
+        };
+      };
+      input.click();
+    };
+
+    // función para el botón 'Run'
+    const runCode = () => {
+      var code = editorRef.current.getValue();
+      consoleEditorRef.current.setValue(code);
+    };
+
+    // función para el botón 'Clear'
+    const clearCode = () => {
+      editorRef.current.setValue('');
+      consoleEditorRef.current.setValue('');
+    };
+
+    openButton.addEventListener('click', openFile);
+    runButton.addEventListener('click', runCode);
+    clearButton.addEventListener('click', clearCode);
+
+    // Cleanup event listeners on component unmount
+    return () => {
+      openButton.removeEventListener('click', openFile);
+      runButton.removeEventListener('click', runCode);
+      clearButton.removeEventListener('click', clearCode);
+    };
+  }, []);
 
   return (
     <div className="App">
-      <NavBar onFileLoad={handleFileLoad} onClear={handleClear} onRun={handleRun}/>
-      <h2>Command Input:</h2>
-      <div className='main'>
-        <Editor code={code} />
-        <h2>Console:</h2>
-        <textarea id="consoleOutput" className='console-output' readOnly value={consoleOutput}></textarea>
+      <div className="editor-container">
+        <div className="header">
+          <button id="openButton">
+            <span className="material-symbols-outlined">upload</span>
+          </button>
+          <button id="clearButton">
+            <span className="material-symbols-outlined">mop</span>
+          </button>
+          <button id="runButton">
+            <span className="material-symbols-outlined">play_arrow</span>
+          </button>
+        </div>
+        <div className="main">
+          <div className="editor">
+            <h3 id="textEditor">Code Input</h3>
+            <textarea id="codeInput" ref={codeInputRef}></textarea>
+          </div>
+          <div className="console">
+            <h3 id="textConsole">Console</h3>
+            <textarea id="consoleOutput" ref={consoleOutputRef}></textarea>
+          </div>
+        </div>
       </div>
     </div>
   );
 }
 
 export default App;
+

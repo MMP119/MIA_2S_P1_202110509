@@ -5,7 +5,7 @@ package commands
 import (
 	"errors"
 	"fmt"
-	"server/structures"
+	structures "server/structures"
 	"strings"
 )
 
