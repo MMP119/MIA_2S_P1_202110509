@@ -24,8 +24,10 @@ func Analyzer(input string) (interface{}, error){ //retorna un interface{} y un 
 		return nil, errors.New("no se ingresó ningún comando")
 	}
 
-	// Se obtiene el comando y se maneja con un switch
+	// se pasan los comandos a minúsculas
+	words[0] = strings.ToLower(words[0])
 
+	// Se obtiene el comando y se maneja con un switch
 	switch words[0] {
 
 		case "mkdisk":

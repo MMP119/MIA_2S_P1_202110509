@@ -19,6 +19,7 @@ type MKDISK struct {
 
 // función que se encarga de crear un disco, analiza los parámetros del comando mkdisk
 func ParseMkdisk(tokens []string) (*MKDISK, error) { // retorna un puntero a MKDISK y un error
+	
 	cmd := &MKDISK{} // se crea un nuevo comando mkdisk (una instancia de MKDISK)
 
 	// Reunir todos los tokens en una sola cadena para manejar las comillas

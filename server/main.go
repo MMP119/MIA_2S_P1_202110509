@@ -58,7 +58,7 @@ func processBatchFile(filePath string) error {
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
 		if line == "" || strings.HasPrefix(line, "#") { // Ignorar líneas vacías y comentarios
-			fmt.Println(line)
+			//fmt.Println(line) //se imprían los comentarios y saltos de línea
 			continue
 		}
 		_, err := analyzer.Analyzer(line)

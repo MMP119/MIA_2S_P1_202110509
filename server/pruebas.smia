@@ -4,13 +4,13 @@
 #CAMBIAR LOS IDS
 
 #CREACION DE DISCOS---------------------------------------------------
-mkdisk -size=1 -unit=M -fit=FF -path=/home/mario/Descargas/DiscosPruebas/Disco1.mia                   # 60M A
-mkdisk -unit=k -size=51200 -fit=BF -path=/home/mario/Descargas/DiscosPruebas/Disco2.mia                # 50M B
-mkdisk -size=14  -path=/home/mario/Descargas/DiscosPruebas/Disco3.mia                                  # 13M C
-mkdisk -size=51200 -unit=K -path=/home/mario/Descargas/DiscosPruebas/Disco4.mia                        # 50M D
-mkdisk -size=20 -unit=M -fit=WF -path=/home/mario/Descargas/DiscosPruebas/Disco5.mia                   # 20M E
+Mkdisk -siZe=1 -unit=M -fit=FF -path=/home/mario/Descargas/DiscosPruebas/Disco1.mia                   # 60M A
+mKdisk -uniT=k -size=51200 -fit=BF -path=/home/mario/Descargas/DiscosPruebas/Disco2.mia                # 50M B
+mkDisk -size=14  -Path=/home/mario/Descargas/DiscosPruebas/Disco3.mia                                  # 13M C
+mkdIsk -Size=51200 -Unit=K -paTh=/home/mario/Descargas/DiscosPruebas/Disco4.mia                        # 50M D
+mkdiSk -sizE=20 -uniT=M -fit=WF -path=/home/mario/Descargas/DiscosPruebas/Disco5.mia                   # 20M E
 
 
 #BORAR DISCOS 3, 5----------------------------------------------------------------
-rmdisk -path=/home/mario/Descargas/DiscosPruebas/Disco3.mia 
-rmdisk -path=/home/mario/Descargas/DiscosPruebas/Disco5.mia 
+rmdiSk -path=/home/mario/Descargas/DiscosPruebas/Disco3.mia 
+rmdisk -paTh=/home/mario/Descargas/DiscosPruebas/Disco5.mia 
