@@ -1,17 +1,21 @@
 package analyzer
 
 import (
-	commands "server/commands"
+	"errors" //para manejar errores
 	"fmt"
-	"errors"	//para manejar errores
 	"os"
 	"os/exec"
+	commands "server/commands"
 	"strings"
 )
 
-
-// Para analizar cualquier comando de entrada 
+// Para analizar cualquier comando de entrada
 func Analyzer(input string) (interface{}, error){ //retorna un interface{} y un error
+
+	// se eliminan los comentarios al final de la línea
+	if comment := strings.Index(input, "#"); comment != -1 {
+		input = strings.TrimSpace(input[:comment])
+	}
 
 	// Se divide el input en palabras
 	words := strings.Fields(input)

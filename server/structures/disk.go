@@ -1,6 +1,7 @@
 package structures
 
 import (
+	"encoding/binary"
 	"errors"
 	"fmt"
 	"os"
@@ -10,8 +11,7 @@ import (
 //ruta donde se creará el disco
 //const fullPath = "/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/disco.mia"
 
-//CreateBinaryFile crea un archivo binario, del tamaño y unidad especificados
-
+//CreateBinaryFile crea un archivo binario, del tamaño y unidad especificados y se escribe un MBR en el archivo
 func CreateBinaryFile(size int, fit string, unit string, path string) error {
 
 	// Convertir el tamaño a bytes
@@ -38,10 +38,32 @@ func CreateBinaryFile(size int, fit string, unit string, path string) error {
 	}
 	defer file.Close() // Cerrar el archivo
 
+	//Crear y escribir el MBR en el archivo
+	mbr := CrearMBR(int32(sizeInBytes), fit)
+	err = writeMBRToFile(file, mbr)
+	if err != nil {
+		return err // Si no se pudo escribir el MBR, retornar el error
+	}
+	
 	// Escribir en el archivo
-	return writeToFile(file, sizeInBytes)
+	err = writeToFile(file, sizeInBytes-int(binary.Size(mbr)))
+	if err != nil {
+		return err
+	}
+
+	//fmt.Println("Disco creado exitosamente")
+	return nil
 }
 
+
+// writeMBRToFile escribe el MBR en el archivo binario
+func writeMBRToFile(file *os.File, mbr MBR) error {
+	err := binary.Write(file, binary.LittleEndian, &mbr)
+	if err != nil {
+		return err // Si no se pudo escribir el MBR, retornar el error
+	}
+	return nil
+}
 
 //convertToBytes convierte el tamaño del disco y la unidad a bytes
 

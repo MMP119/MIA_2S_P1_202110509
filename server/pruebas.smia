@@ -1,0 +1,16 @@
+#ENTRADA PRIMER PARTE MIA
+#2S 2024
+
+#CAMBIAR LOS IDS
+
+#CREACION DE DISCOS---------------------------------------------------
+mkdisk -size=1 -unit=M -fit=FF -path=/home/mario/Descargas/DiscosPruebas/Disco1.mia                   # 60M A
+mkdisk -unit=k -size=51200 -fit=BF -path=/home/mario/Descargas/DiscosPruebas/Disco2.mia                # 50M B
+mkdisk -size=14  -path=/home/mario/Descargas/DiscosPruebas/Disco3.mia                                  # 13M C
+mkdisk -size=51200 -unit=K -path=/home/mario/Descargas/DiscosPruebas/Disco4.mia                        # 50M D
+mkdisk -size=20 -unit=M -fit=WF -path=/home/mario/Descargas/DiscosPruebas/Disco5.mia                   # 20M E
+
+
+#BORAR DISCOS 3, 5----------------------------------------------------------------
+rmdisk -path=/home/mario/Descargas/DiscosPruebas/Disco3.mia 
+rmdisk -path=/home/mario/Descargas/DiscosPruebas/Disco5.mia 

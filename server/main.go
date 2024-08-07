@@ -1,48 +1,83 @@
 package main
 
-
 import (
-	"fmt"
-	analyzer "server/analyzer"
 	"bufio"
+	"fmt"
 	"os"
+	analyzer "server/analyzer"
+	structures "server/structures"
+	"strings"
 )
 
-
 func main() {
-		// Crea un nuevo escáner que lee desde la entrada estándar (teclado)
-		scanner := bufio.NewScanner(os.Stdin)
-
-		// Bucle infinito para leer comandos del usuario
-		for {
-			fmt.Print(">>> ") // Imprime el prompt para el usuario
-	
-			// Lee la siguiente línea de entrada del usuario
-			if !scanner.Scan() {
-				break // Si no hay más líneas para leer, rompe el bucle
-			}
-	
-			// Obtiene el texto ingresado por el usuario
-			input := scanner.Text()
-	
-			// Llama a la función Analyzer del paquete analyzer para analizar el comando ingresado
-			_, err := analyzer.Analyzer(input)
-			if err != nil {
-				// Si hay un error al analizar el comando, imprime el error y continúa con el siguiente comando
-				fmt.Println("Error:", err)
-				continue
-			}
-	
-			// Comentado: Aquí podrías imprimir el comando analizado
-			// fmt.Printf("Parsed Command: %+v\n", cmd)
+	if len(os.Args) > 1 {
+		// Si hay argumentos, procesar el archivo de carga masiva
+		filePath := os.Args[1]
+		err := processBatchFile(filePath)
+		if err != nil {
+			fmt.Println("Error:", err)
 		}
-	
-		// Verifica si hubo algún error al leer la entrada
-		if err := scanner.Err(); err != nil {
-			// Si hubo un error al leer la entrada, lo imprime
-			fmt.Println("Error al leer:", err)
-		}
+	} else {
+		// Si no hay argumentos, iniciar el modo interactivo
+		interactiveMode()
+	}
 }
 
-// Run the program
-// go run main.go
+// Modo interactivo para comandos individuales
+func interactiveMode() {
+	scanner := bufio.NewScanner(os.Stdin)
+	for {
+		fmt.Print(">>> ")
+		if !scanner.Scan() {
+			break
+		}
+		input := scanner.Text()
+		_, err := analyzer.Analyzer(input)
+		if err != nil {
+			fmt.Println("Error:", err)
+		}else{
+			verifyMBR("/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/disk.mia")
+			// mkdisk -size=1 -unit=M -fit=WF -path=/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/disk.mia
+		}
+	}
+	if err := scanner.Err(); err != nil {
+		fmt.Println("Error al leer:", err)
+	}
+	
+}
+
+// Procesar archivo de carga masiva
+func processBatchFile(filePath string) error {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return fmt.Errorf("error al abrir el archivo: %v", err)
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if line == "" || strings.HasPrefix(line, "#") { // Ignorar líneas vacías y comentarios
+			fmt.Println(line)
+			continue
+		}
+		_, err := analyzer.Analyzer(line)
+		if err != nil {
+			fmt.Printf("Error al procesar comando '%s': %v\n", line, err)
+		}
+	}
+	if err := scanner.Err(); err != nil {
+		return fmt.Errorf("error al leer el archivo: %v", err)
+	}
+	return nil
+}
+
+
+func verifyMBR(filePath string) {
+	mbr, err := structures.ReadMBRFromFile(filePath)
+	if err != nil {
+		fmt.Println("Error al leer el MBR:", err)
+		return
+	}
+	structures.PrintMBR(mbr)
+}

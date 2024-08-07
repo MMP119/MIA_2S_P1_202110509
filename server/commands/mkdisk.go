@@ -11,10 +11,10 @@ import (
 
 // estructura que representa un comando mkdisk
 type MKDISK struct {
-	size int    // tamaño del disco
-	fit  string // tipo de ajuste del disco (BF, FF, WF)
-	unit string // unidad de medida del tamaño del disco (K, M)
-	path string // ruta donde se creará el disco
+	Size int    // tamaño del disco
+	Fit  string // tipo de ajuste del disco (BF, FF, WF)
+	Unit string // unidad de medida del tamaño del disco (K, M)
+	Path string // ruta donde se creará el disco
 }
 
 // función que se encarga de crear un disco, analiza los parámetros del comando mkdisk
@@ -46,7 +46,7 @@ func ParseMkdisk(tokens []string) (*MKDISK, error) { // retorna un puntero a MKD
 			if err != nil || size <= 0 {
 				return nil, errors.New("error: el tamaño debe ser un número entero positivo")
 			}
-			cmd.size = size
+			cmd.Size = size
 
 		case "-fit":
 			// Se convierte el valor a mayúsculas
@@ -54,7 +54,7 @@ func ParseMkdisk(tokens []string) (*MKDISK, error) { // retorna un puntero a MKD
 			if fit != "BF" && fit != "FF" && fit != "WF" {
 				return nil, errors.New("error: el tipo de ajuste debe ser BF, FF o WF")
 			}
-			cmd.fit = fit
+			cmd.Fit = fit
 
 		case "-unit":
 			// Se convierte el valor a mayúsculas
@@ -62,11 +62,11 @@ func ParseMkdisk(tokens []string) (*MKDISK, error) { // retorna un puntero a MKD
 			if unit != "K" && unit != "M" {
 				return nil, errors.New("error: la unidad de medida debe ser K o M")
 			}
-			cmd.unit = unit
+			cmd.Unit = unit
 
 		case "-path":
 			// Se establece la ruta donde se creará el disco
-			cmd.path = strings.Trim(value, "\"") // Elimina las comillas dobles alrededor de la ruta si existen
+			cmd.Path = strings.Trim(value, "\"") // Elimina las comillas dobles alrededor de la ruta si existen
 
 		default:
 			return nil, fmt.Errorf("error: parámetro '%s' no reconocido", key)
@@ -74,26 +74,26 @@ func ParseMkdisk(tokens []string) (*MKDISK, error) { // retorna un puntero a MKD
 	}
 
 	// Verificamos que el parámetro -size se haya ingresado
-	if cmd.size == 0 {
+	if cmd.Size == 0 {
 		return nil, errors.New("error: el parámetro -size es obligatorio")
 	}
 
 	// Verificamos que el parámetro -fit se haya ingresado, si no se establece, por defecto es FF
-	if cmd.fit == "" {
-		cmd.fit = "FF"
+	if cmd.Fit == "" {
+		cmd.Fit = "FF"
 	}
 
 	// Si no se establece la unidad, por defecto es M
-	if cmd.unit == "" {
-		cmd.unit = "M"
+	if cmd.Unit == "" {
+		cmd.Unit = "M"
 	}
 
-	if cmd.path == "" {
+	if cmd.Path == "" {
 		return nil, errors.New("error: el parámetro -path es obligatorio")
 	}
 
 	// Llamamos a la función CreateBinaryFile para crear el disco
-	err := structures.CreateBinaryFile(cmd.size, cmd.fit, cmd.unit, cmd.path)
+	err := structures.CreateBinaryFile(cmd.Size, cmd.Fit, cmd.Unit, cmd.Path)
 	if err != nil {
 		fmt.Println("Error: ", err)
 		return nil, err
