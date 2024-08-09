@@ -14,3 +14,12 @@ mkdiSk -sizE=20 -uniT=M -fit=WF -path=/home/mario/Descargas/DiscosPruebas/Disco5
 #BORAR DISCOS 3, 5----------------------------------------------------------------
 rmdiSk -path=/home/mario/Descargas/DiscosPruebas/Disco3.mia 
 rmdisk -paTh=/home/mario/Descargas/DiscosPruebas/Disco5.mia 
+
+
+Mkdisk -siZe=1 -unit=M -fit=FF -path="/home/mario/Descargas/DiscosPruebas/Disco1.mia"                 
+mKdisk -uniT=k -size=51200 -fit=BF -path=/home/mario/Descargas/DiscosPruebas/Disco2.mia                
+mkDisk -size=14  -path=/home/mario/Descargas/DiscosPruebas/Disco3.mia                                  
+mkdIsk -Size=51200 -Unit=K -paTh=/home/mario/Descargas/DiscosPruebas/Disco4.mia                        
+mkdiSk -sizE=20 -uniT=M -fit=WF -path=/home/mario/Descargas/DiscosPruebas/Disco5.mia                   
+rmdiSk -path=/home/mario/Descargas/DiscosPruebas/Disco3.mia 
+rmdisk -paTh=/home/mario/Descargas/DiscosPruebas/Disco5.mia 

@@ -15,7 +15,7 @@ type RMDISK struct {
 
 
 // CommandRmdisk parsea el comando rmdisk y devuelve una instancia de RMDISK
-func ParserRmdisk(tokens []string) (*RMDISK, error) {
+func ParserRmdisk(tokens []string) (*RMDISK, string, error) {
 	cmd := &RMDISK{} // Crea una nueva instancia de RMDISK
 
 	// Unir tokens en una sola cadena y luego dividir por espacios, respetando las comillas
@@ -30,7 +30,7 @@ func ParserRmdisk(tokens []string) (*RMDISK, error) {
 		// Divide cada parte en clave y valor usando "=" como delimitador
 		kv := strings.SplitN(match, "=", 2)
 		if len(kv) != 2 {
-			return nil, fmt.Errorf("formato de parámetro inválido: %s", match)
+			return nil, "", fmt.Errorf("formato de parámetro inválido: %s", match)
 		}
 		key, value := strings.ToLower(kv[0]), kv[1]
 
@@ -44,25 +44,25 @@ func ParserRmdisk(tokens []string) (*RMDISK, error) {
 		case "-path":
 			// Verifica que el path no esté vacío
 			if value == "" {
-				return nil, errors.New("el path no puede estar vacío")
+				return nil, "", errors.New("el path no puede estar vacío")
 			}
 			cmd.path = value
 		default:
 			// Si el parámetro no es reconocido, devuelve un error
-			return nil, fmt.Errorf("parámetro desconocido: %s", key)
+			return nil, "", fmt.Errorf("parámetro desconocido: %s", key)
 		}
 	}
 
 	// Verifica que el parámetro -path haya sido proporcionado
 	if cmd.path == "" {
-		return nil, errors.New("faltan parámetros requeridos: -path")
+		return nil, "", errors.New("faltan parámetros requeridos: -path")
 	}
 
 	// SE DEBE PEDIR LA CONFIRMACION DE ELIMINAR EL DISCO, SI NO SE CONFIRMA, NO SE ELIMINA (ESTO DESDE EL FRONTEND), POR AHORA SE ELIMINA DIRECTAMENTE
-	err := util.DeleteBinaryFile(cmd.path) // Elimina el archivo binario del disco
+	successMsg, err := util.DeleteBinaryFile(cmd.path) // Elimina el archivo binario del disco
 	if err != nil {
-		return nil, err // Devuelve un error si no se pudo eliminar el disco
+		return nil, "", err // Devuelve un error si no se pudo eliminar el disco
 	}
 
-	return cmd, nil // Devuelve el comando RMDISK creado
+	return cmd, successMsg ,nil // Devuelve el comando RMDISK creado
 }

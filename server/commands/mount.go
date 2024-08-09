@@ -20,7 +20,7 @@ type MOUNT struct {
 */
 
 // CommandMount parsea el comando mount y devuelve una instancia de MOUNT
-func ParserMount(tokens []string) (*MOUNT, error) {
+func ParserMount(tokens []string) (*MOUNT, string, error) {
 	cmd := &MOUNT{} // Crea una nueva instancia de MOUNT
 
 	// Unir tokens en una sola cadena y luego dividir por espacios, respetando las comillas
@@ -35,7 +35,7 @@ func ParserMount(tokens []string) (*MOUNT, error) {
 		// Divide cada parte en clave y valor usando "=" como delimitador
 		kv := strings.SplitN(match, "=", 2)
 		if len(kv) != 2 {
-			return nil, fmt.Errorf("formato de parámetro inválido: %s", match)
+			return nil, "", fmt.Errorf("formato de parámetro inválido: %s", match)
 		}
 		key, value := strings.ToLower(kv[0]), kv[1]
 
@@ -49,31 +49,31 @@ func ParserMount(tokens []string) (*MOUNT, error) {
 		case "-path":
 			// Verifica que el path no esté vacío
 			if value == "" {
-				return nil, errors.New("el path no puede estar vacío")
+				return nil,"",  errors.New("el path no puede estar vacío")
 			}
 			cmd.path = value
 		case "-name":
 			// Verifica que el nombre no esté vacío
 			if value == "" {
-				return nil, errors.New("el nombre no puede estar vacío")
+				return nil, "", errors.New("el nombre no puede estar vacío")
 			}
 			cmd.name = value
 		default:
 			// Si el parámetro no es reconocido, devuelve un error
-			return nil, fmt.Errorf("parámetro desconocido: %s", key)
+			return nil, "", fmt.Errorf("parámetro desconocido: %s", key)
 		}
 	}
 
 	// Verifica que los parámetros -path y -name hayan sido proporcionados
 	if cmd.path == "" {
-		return nil, errors.New("faltan parámetros requeridos: -path")
+		return nil, "", errors.New("faltan parámetros requeridos: -path")
 	}
 	if cmd.name == "" {
-		return nil, errors.New("faltan parámetros requeridos: -name")
+		return nil, "", errors.New("faltan parámetros requeridos: -name")
 	}
 
 	/*
 		PRÓXIMAMENTE
 	*/
-	return cmd, nil // Devuelve el comando MOUNT creado
+	return cmd, "", nil // Devuelve el comando MOUNT creado
 }

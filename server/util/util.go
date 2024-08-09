@@ -32,13 +32,13 @@ func ConvertToBytes(size int, unit string) (int, error) {
 
 
 //DeleteBinaryFile elimina un archivo binario
-func DeleteBinaryFile(path string) error {
+func DeleteBinaryFile(path string) (string, error) {
 	err := os.Remove(path)
 	if err != nil {
-		return fmt.Errorf("error: no se pudo eliminar el disco: '%s'", err)
+		return "", fmt.Errorf("error: no se pudo eliminar el disco: '%s'", err)
 	}
-	fmt.Println("Disco eliminado exitosamente")
-	return nil
+	//fmt.Println("Disco eliminado exitosamente")
+	return "Disco eliminado exitosamente", nil
 }
 
 

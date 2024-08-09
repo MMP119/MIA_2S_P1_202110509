@@ -13,7 +13,7 @@ import (
 
 
 // CommandFdisk parsea el comando fdisk y devuelve una instancia de FDISK
-func ParserFdisk(tokens []string) (*structures.FDISK, error) {
+func ParserFdisk(tokens []string) (*structures.FDISK, string, error) {
 	cmd := &structures.FDISK{} // Crea una nueva instancia de FDISK
 
 	// Unir tokens en una sola cadena y luego dividir por espacios, respetando las comillas
@@ -28,7 +28,7 @@ func ParserFdisk(tokens []string) (*structures.FDISK, error) {
 		// Divide cada parte en clave y valor usando "=" como delimitador
 		kv := strings.SplitN(match, "=", 2)
 		if len(kv) != 2 {
-			return nil, fmt.Errorf("formato de parámetro inválido: %s", match)
+			return nil, "", fmt.Errorf("formato de parámetro inválido: %s", match)
 		}
 		key, value := strings.ToLower(kv[0]), kv[1]
 
@@ -43,56 +43,56 @@ func ParserFdisk(tokens []string) (*structures.FDISK, error) {
 			// Convierte el valor del tamaño a un entero
 			size, err := strconv.Atoi(value)
 			if err != nil || size <= 0 {
-				return nil, errors.New("el tamaño debe ser un número entero positivo")
+				return nil, "", errors.New("el tamaño debe ser un número entero positivo")
 			}
 			cmd.Size = size
 		case "-unit":
 			// Verifica que la unidad sea "K" o "M"
 			if value != "K" && value != "M" {
-				return nil, errors.New("la unidad debe ser K o M")
+				return nil, "", errors.New("la unidad debe ser K o M")
 			}
 			cmd.Unit = strings.ToUpper(value)
 		case "-fit":
 			// Verifica que el ajuste sea "BF", "FF" o "WF"
 			value = strings.ToUpper(value)
 			if value != "BF" && value != "FF" && value != "WF" {
-				return nil, errors.New("el ajuste debe ser BF, FF o WF")
+				return nil, "", errors.New("el ajuste debe ser BF, FF o WF")
 			}
 			cmd.Fit = value
 		case "-path":
 			// Verifica que el path no esté vacío
 			if value == "" {
-				return nil, errors.New("el path no puede estar vacío")
+				return nil, "", errors.New("el path no puede estar vacío")
 			}
 			cmd.Path = value
 		case "-type":
 			// Verifica que el tipo sea "P", "E" o "L"
 			value = strings.ToUpper(value)
 			if value != "P" && value != "E" && value != "L" {
-				return nil, errors.New("el tipo debe ser P, E o L")
+				return nil, "", errors.New("el tipo debe ser P, E o L")
 			}
 			cmd.TypE = value
 		case "-name":
 			// Verifica que el nombre no esté vacío
 			if value == "" {
-				return nil, errors.New("el nombre no puede estar vacío")
+				return nil, "", errors.New("el nombre no puede estar vacío")
 			}
 			cmd.Name = value
 		default:
 			// Si el parámetro no es reconocido, devuelve un error
-			return nil, fmt.Errorf("parámetro desconocido: %s", key)
+			return nil, "", fmt.Errorf("parámetro desconocido: %s", key)
 		}
 	}
 
 	// Verifica que los parámetros -size, -path y -name hayan sido proporcionados
 	if cmd.Size == 0 {
-		return nil, errors.New("faltan parámetros requeridos: -size")
+		return nil, "", errors.New("faltan parámetros requeridos: -size")
 	}
 	if cmd.Path == "" {
-		return nil, errors.New("faltan parámetros requeridos: -path")
+		return nil, "", errors.New("faltan parámetros requeridos: -path")
 	}
 	if cmd.Name == "" {
-		return nil, errors.New("faltan parámetros requeridos: -name")
+		return nil, "", errors.New("faltan parámetros requeridos: -name")
 	}
 
 	// Si no se proporcionó la unidad, se establece por defecto a "M"
@@ -118,7 +118,7 @@ func ParserFdisk(tokens []string) (*structures.FDISK, error) {
 	err := mbr.DeserializeMBR(cmd.Path)
 	if err != nil {
 		fmt.Println("Error deserializando el MBR:", err)
-		return nil, err
+		return nil, "", err
 	}
 
 	// Imprimir la estructura
@@ -127,7 +127,7 @@ func ParserFdisk(tokens []string) (*structures.FDISK, error) {
 	// Imprimir las particiones
 	mbr.PrintPartitions()
 
-	return cmd, nil // Devuelve el comando FDISK creado
+	return cmd, "", nil // Devuelve el comando FDISK creado
 }
 
 func commandFdisk(fdisk *structures.FDISK) error {

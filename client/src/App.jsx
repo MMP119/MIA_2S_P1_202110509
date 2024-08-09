@@ -55,11 +55,46 @@ function App() {
       input.click();
     };
 
-    // función para el botón 'Run'
-    const runCode = () => {
-      var code = editorRef.current.getValue();
-      consoleEditorRef.current.setValue(code);
-    };
+// Función para el botón 'Run'
+const runCode = async () => {
+  // Obtén el valor del editor y divide en comandos
+  const code = editorRef.current.getValue();
+  // Divide el código en comandos individuales, asumiendo que los comandos están separados por nuevas líneas
+  const commands = code.split('\n').filter(command => command.trim() !== '');
+
+  try {
+    const response = await fetch('http://localhost:8080/analyze', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(commands), // Enviar el array de comandos
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      consoleEditorRef.current.setValue(`Error del servidor: ${errorText}`);
+      throw new Error(errorText);
+    }
+
+    const data = await response.json();
+    // Formatea la respuesta para mostrar resultados y errores
+    let output = '';
+    // eslint-disable-next-line no-unused-vars
+    for (const [command, result] of Object.entries(data.results)) {
+      output += `${result}\n`;
+    }
+    // eslint-disable-next-line no-unused-vars
+    for (const [command, error] of Object.entries(data.errors)) {
+      output += `Error - ${error}\n`;
+    }
+
+    consoleEditorRef.current.setValue(output || 'No hay salida');
+  } catch (error) {
+    consoleEditorRef.current.setValue('Error al conectar con el servidor.');
+    console.error('Error:', error);
+  }
+};
 
     // función para el botón 'Clear'
     const clearCode = () => {
