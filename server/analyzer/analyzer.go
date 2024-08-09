@@ -1,100 +1,54 @@
 package analyzer
 
 import (
-	"errors" //para manejar errores
-	"fmt"
-	"os"
-	"os/exec"
-	commands "server/commands"
-	"strings"
+	commands "server/commands" 
+	"errors"                    
+	"fmt"                       
+	"os"                        
+	"os/exec"                   
+	"strings"                  
 )
 
-// Para analizar cualquier comando de entrada
-func Analyzer(input string) (interface{}, error){ //retorna un interface{} y un error
+// Analyzer analiza el comando de entrada y ejecuta la acción correspondiente
+func Analyzer(input string) (interface{}, error) {
+	// Divide la entrada en tokens usando espacios en blanco como delimitadores
+	tokens := strings.Fields(input)
 
-	// se eliminan los comentarios al final de la línea
-	if comment := strings.Index(input, "#"); comment != -1 {
-		input = strings.TrimSpace(input[:comment])
+	// Si no se proporcionó ningún comando, devuelve un error
+	if len(tokens) == 0 {
+		return nil, errors.New("no se proporcionó ningún comando")
 	}
 
-	// Se divide el input en palabras
-	words := strings.Fields(input)
+	// pasar el comando a minúsculas
+	tokens[0] = strings.ToLower(tokens[0])
 
-	if len(words) == 0 {
-		return nil, errors.New("no se ingresó ningún comando")
-	}
-
-	// se pasan los comandos a minúsculas
-	words[0] = strings.ToLower(words[0])
-
-	// Se obtiene el comando y se maneja con un switch
-	switch words[0] {
+	// Switch para manejar diferentes comandos
+	switch tokens[0] {
 
 		case "mkdisk":
-			//aquí se llama a la funcion que se encarga de crear un disco
-			return commands.ParseMkdisk(words[1:])
+			return commands.ParserMkdisk(tokens[1:])
 
 		case "rmdisk":
-			return commands.ParseRmDisk(words[1:])
+			return commands.ParserRmdisk(tokens[1:])
 
 		case "fdisk":
-			return nil, errors.New("comando fdisk no implementado")
+			return commands.ParserFdisk(tokens[1:])
 
 		case "mount":
-			return nil, errors.New("comando mount no implementado")
-		
-		case "mkfs":
-			return nil, errors.New("comando mkfs no implementado")
-
-		case "cat":
-			return nil, errors.New("comando cat no implementado")
-
-		case "login":
-			return nil, errors.New("comando login no implementado")
-
-		case "logout":
-			return nil, errors.New("comando logout no implementado")
-
-		case "mkgrp":
-			return nil, errors.New("comando mkgrp no implementado")
-		
-		case "rmgrp":
-			return nil, errors.New("comando rmgrp no implementado")
-		
-		case "mkusr":
-			return nil, errors.New("comando mkusr no implementado")
-		
-		case "rmusr":
-			return nil, errors.New("comando rmusr no implementado")
-		
-		case "chgrp":
-			return nil, errors.New("comando chgrp no implementado")
-		
-		case "mkfile":
-			return nil, errors.New("comando mkfile no implementado")
-		
-		case "mkdir":
-			return nil, errors.New("comando mkdir no implementado")
-		
-		case "rep": //reportes
-			return nil, errors.New("comando rep no implementado")
-
+			return commands.ParserMount(tokens[1:])
 
 		case "clear":
-			//para limpiar la consola
+			// Crea un comando para limpiar la terminal
 			cmd := exec.Command("clear")
-			cmd.Stdout = os.Stdout //redirige la salida estandar a la consola
-			err := cmd.Run()		//ejecuta el comando
-
-			if err != nil{
-				//si hay un error, se retorna el error
-				return nil, errors.New("error al limpiar la consola")
+			cmd.Stdout = os.Stdout // Redirige la salida del comando a la salida estándar
+			err := cmd.Run()       // Ejecuta el comando
+			if err != nil {
+				// Si hay un error al ejecutar el comando, devuelve un error
+				return nil, errors.New("no se pudo limpiar la terminal")
 			}
-			return nil, nil //si no hay errores, retorna nil
-
+			return nil, nil // Devuelve nil si el comando se ejecutó correctamente
 		default:
-			return nil, fmt.Errorf("comando no reconocido: %s", words[0])
-
-	}
-
+			// Si el comando no es reconocido, devuelve un error
+			return nil, fmt.Errorf("comando desconocido: %s", tokens[0])
+		}
 }

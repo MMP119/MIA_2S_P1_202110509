@@ -1,133 +1,107 @@
 package commands
 
 import (
-	// para acceder a las funciones de structures
-	structures "server/structures"
-	"errors" // para manejar errores
+	"errors"
 	"fmt"
-	"strconv" // para convertir cadenas a otros tipos de datos
+	"regexp"
+	structures "server/structures"
+	"strconv"
 	"strings"
 )
 
-// estructura que representa un comando mkdisk
-type MKDISK struct {
-	Size int    // tamaño del disco
-	Fit  string // tipo de ajuste del disco (BF, FF, WF)
-	Unit string // unidad de medida del tamaño del disco (K, M)
-	Path string // ruta donde se creará el disco
-}
 
-// función que se encarga de crear un disco, analiza los parámetros del comando mkdisk
-func ParseMkdisk(tokens []string) (*MKDISK, error) { // retorna un puntero a MKDISK y un error
-	
-	cmd := &MKDISK{} // se crea un nuevo comando mkdisk (una instancia de MKDISK)
 
-	// Reunir todos los tokens en una sola cadena para manejar las comillas
-	input := strings.Join(tokens, " ")
+func ParserMkdisk(tokens []string) (*structures.MKDISK, error) {
 
-	// Usar un analizador que respete las comillas
-	args := parseArgs(input)
+	cmd := &structures.MKDISK{} // Crea una nueva instancia de MKDISK
 
-	for _, arg := range args {
-		// Dividimos cada argumento en clave y valor usando el signo igual como separador
-		parts := strings.SplitN(arg, "=", 2)
-		if len(parts) != 2 {
-			return nil, fmt.Errorf("error: '%s' no es un parámetro válido", arg)
+	// Unir tokens en una sola cadena y luego dividir por espacios, respetando las comillas
+	args := strings.Join(tokens, " ")
+
+	// Expresión regular para encontrar los parámetros del comando mkdisk
+	re := regexp.MustCompile(`(?i)-size=\d+|(?i)-unit=[kKmM]|(?i)-fit=[bBfFwW]{2}|(?i)-path="[^"]+"|(?i)-path=[^\s]+`)
+
+	// Encuentra todas las coincidencias de la expresión regular en la cadena de argumentos
+	matches := re.FindAllString(args, -1)
+
+	// Itera sobre cada coincidencia encontrada
+	for _, match := range matches {
+		// Divide cada parte en clave y valor usando "=" como delimitador
+		kv := strings.SplitN(match, "=", 2)
+		if len(kv) != 2 {
+			return nil, fmt.Errorf("formato de parámetro inválido: %s", match)
+		}
+		key, value := strings.ToLower(kv[0]), kv[1]
+
+		// Remove quotes from value if present
+		if strings.HasPrefix(value, "\"") && strings.HasSuffix(value, "\"") {
+			value = strings.Trim(value, "\"")
 		}
 
-		// Se obtiene la clave y el valor de cada argumento
-		key, value := strings.ToLower(parts[0]), parts[1]
-
-		// Switch para analizar cada parámetro del comando mkdisk
+		// Switch para manejar diferentes parámetros
 		switch key {
 
-		case "-size":
-			// Se convierte el valor a entero
-			size, err := strconv.Atoi(value)
-			if err != nil || size <= 0 {
-				return nil, errors.New("error: el tamaño debe ser un número entero positivo")
+			case "-size":
+				// Convierte el valor del tamaño a un entero
+				size, err := strconv.Atoi(value)
+				if err != nil || size <= 0 {
+					return nil, errors.New("el tamaño debe ser un número entero positivo")
+				}
+				cmd.Size = size
+
+			case "-unit":
+				// Verifica que la unidad sea "K" o "M"
+				value = strings.ToUpper(value)
+				if value != "K" && value != "M" {
+					return nil, errors.New("la unidad debe ser K o M")
+				}
+				cmd.Unit = value
+
+			case "-fit":
+				// Verifica que el ajuste sea "BF", "FF" o "WF"
+				value = strings.ToUpper(value)
+				if value != "BF" && value != "FF" && value != "WF" {
+					return nil, errors.New("el ajuste debe ser BF, FF o WF")
+				}
+				cmd.Fit = value
+
+			case "-path":
+				// Verifica que el path no esté vacío
+				if value == "" {
+					return nil, errors.New("el path no puede estar vacío")
+				}
+				cmd.Path = value
+
+			default:
+				// Si el parámetro no es reconocido, devuelve un error
+				return nil, fmt.Errorf("parámetro desconocido: %s", key)
 			}
-			cmd.Size = size
-
-		case "-fit":
-			// Se convierte el valor a mayúsculas
-			fit := strings.ToUpper(value)
-			if fit != "BF" && fit != "FF" && fit != "WF" {
-				return nil, errors.New("error: el tipo de ajuste debe ser BF, FF o WF")
-			}
-			cmd.Fit = fit
-
-		case "-unit":
-			// Se convierte el valor a mayúsculas
-			unit := strings.ToUpper(value)
-			if unit != "K" && unit != "M" {
-				return nil, errors.New("error: la unidad de medida debe ser K o M")
-			}
-			cmd.Unit = unit
-
-		case "-path":
-			// Se establece la ruta donde se creará el disco
-			cmd.Path = strings.Trim(value, "\"") // Elimina las comillas dobles alrededor de la ruta si existen
-
-		default:
-			return nil, fmt.Errorf("error: parámetro '%s' no reconocido", key)
-		}
 	}
 
-	// Verificamos que el parámetro -size se haya ingresado
+	// Verifica que los parámetros -size y -path hayan sido proporcionados
 	if cmd.Size == 0 {
-		return nil, errors.New("error: el parámetro -size es obligatorio")
+		return nil, errors.New("faltan parámetros requeridos: -size")
+	}
+	if cmd.Path == "" {
+		return nil, errors.New("faltan parámetros requeridos: -path")
 	}
 
-	// Verificamos que el parámetro -fit se haya ingresado, si no se establece, por defecto es FF
-	if cmd.Fit == "" {
-		cmd.Fit = "FF"
-	}
-
-	// Si no se establece la unidad, por defecto es M
+	// Si no se proporcionó la unidad, se establece por defecto a "M"
 	if cmd.Unit == "" {
 		cmd.Unit = "M"
 	}
 
-	if cmd.Path == "" {
-		return nil, errors.New("error: el parámetro -path es obligatorio")
+	// Si no se proporcionó el ajuste, se establece por defecto a "FF"
+	if cmd.Fit == "" {
+		cmd.Fit = "FF"
 	}
 
-	// Llamamos a la función CreateBinaryFile para crear el disco
-	err := structures.CreateBinaryFile(cmd.Size, cmd.Fit, cmd.Unit, cmd.Path)
+	// Crear el disco con los parámetros proporcionados
+	err := structures.CommandMkdisk(cmd)
 	if err != nil {
-		fmt.Println("Error: ", err)
-		return nil, err
+		fmt.Println("Error:", err)
 	}
 
-	return cmd, nil // Retorna el comando mkdisk y nil (sin errores)
+	return cmd, nil // Devuelve el comando MKDISK creado
 }
 
-// parseArgs analiza una cadena de entrada en una lista de argumentos, respetando las comillas
-func parseArgs(input string) []string {
-	var args []string
-	var currentArg strings.Builder
-	inQuotes := false
-
-	for _, char := range input {
-		switch char {
-		case ' ':
-			if inQuotes {
-				currentArg.WriteRune(char)
-			} else if currentArg.Len() > 0 {
-				args = append(args, currentArg.String())
-				currentArg.Reset()
-			}
-		case '"':
-			inQuotes = !inQuotes
-		default:
-			currentArg.WriteRune(char)
-		}
-	}
-
-	if currentArg.Len() > 0 {
-		args = append(args, currentArg.String())
-	}
-
-	return args
-}

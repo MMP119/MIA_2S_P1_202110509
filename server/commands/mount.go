@@ -4,24 +4,29 @@ import (
 	"errors" 
 	"fmt"    
 	"regexp" 
-	util "server/util" 
 	"strings" 
 )
 
-// RMDISK estructura que representa el comando rmdisk con su parámetro
-type RMDISK struct {
+// MOUNT estructura que representa el comando mount con sus parámetros
+type MOUNT struct {
 	path string // Ruta del archivo del disco
+	name string // Nombre de la partición
 }
 
+/*
+	mount -path=/home/Disco1.mia -name=Part1 #id=341a
+	mount -path=/home/Disco2.mia -name=Part1 #id=342a
+	mount -path=/home/Disco3.mia -name=Part2 #id=343a
+*/
 
-// CommandRmdisk parsea el comando rmdisk y devuelve una instancia de RMDISK
-func ParserRmdisk(tokens []string) (*RMDISK, error) {
-	cmd := &RMDISK{} // Crea una nueva instancia de RMDISK
+// CommandMount parsea el comando mount y devuelve una instancia de MOUNT
+func ParserMount(tokens []string) (*MOUNT, error) {
+	cmd := &MOUNT{} // Crea una nueva instancia de MOUNT
 
 	// Unir tokens en una sola cadena y luego dividir por espacios, respetando las comillas
 	args := strings.Join(tokens, " ")
-	// Expresión regular para encontrar el parámetro del comando rmdisk
-	re := regexp.MustCompile(`(?i)-path="[^"]+"|(?i)-path=[^\s]+`)
+	// Expresión regular para encontrar los parámetros del comando mount
+	re := regexp.MustCompile(`(?i)-path="[^"]+"|(?i)-path=[^\s]+|(?i)-name="[^"]+"|(?i)-name=[^\s]+`)
 	// Encuentra todas las coincidencias de la expresión regular en la cadena de argumentos
 	matches := re.FindAllString(args, -1)
 
@@ -39,7 +44,7 @@ func ParserRmdisk(tokens []string) (*RMDISK, error) {
 			value = strings.Trim(value, "\"")
 		}
 
-		// Switch para manejar el parámetro -path
+		// Switch para manejar diferentes parámetros
 		switch key {
 		case "-path":
 			// Verifica que el path no esté vacío
@@ -47,22 +52,28 @@ func ParserRmdisk(tokens []string) (*RMDISK, error) {
 				return nil, errors.New("el path no puede estar vacío")
 			}
 			cmd.path = value
+		case "-name":
+			// Verifica que el nombre no esté vacío
+			if value == "" {
+				return nil, errors.New("el nombre no puede estar vacío")
+			}
+			cmd.name = value
 		default:
 			// Si el parámetro no es reconocido, devuelve un error
 			return nil, fmt.Errorf("parámetro desconocido: %s", key)
 		}
 	}
 
-	// Verifica que el parámetro -path haya sido proporcionado
+	// Verifica que los parámetros -path y -name hayan sido proporcionados
 	if cmd.path == "" {
 		return nil, errors.New("faltan parámetros requeridos: -path")
 	}
-
-	// SE DEBE PEDIR LA CONFIRMACION DE ELIMINAR EL DISCO, SI NO SE CONFIRMA, NO SE ELIMINA (ESTO DESDE EL FRONTEND), POR AHORA SE ELIMINA DIRECTAMENTE
-	err := util.DeleteBinaryFile(cmd.path) // Elimina el archivo binario del disco
-	if err != nil {
-		return nil, err // Devuelve un error si no se pudo eliminar el disco
+	if cmd.name == "" {
+		return nil, errors.New("faltan parámetros requeridos: -name")
 	}
 
-	return cmd, nil // Devuelve el comando RMDISK creado
+	/*
+		PRÓXIMAMENTE
+	*/
+	return cmd, nil // Devuelve el comando MOUNT creado
 }

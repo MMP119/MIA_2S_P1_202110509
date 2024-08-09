@@ -4,9 +4,9 @@
 #CAMBIAR LOS IDS
 
 #CREACION DE DISCOS---------------------------------------------------
-Mkdisk -siZe=1 -unit=M -fit=FF -path=/home/mario/Descargas/DiscosPruebas/Disco1.mia                   # 60M A
+Mkdisk -siZe=1 -unit=M -fit=FF -path="/home/mario/Descargas/Discos Pruebas/Disco1.mia"                 # 60M A
 mKdisk -uniT=k -size=51200 -fit=BF -path=/home/mario/Descargas/DiscosPruebas/Disco2.mia                # 50M B
-mkDisk -size=14  -Path=/home/mario/Descargas/DiscosPruebas/Disco3.mia                                  # 13M C
+mkDisk -size=14  -path=/home/mario/Descargas/DiscosPruebas/Disco3.mia                                  # 13M C
 mkdIsk -Size=51200 -Unit=K -paTh=/home/mario/Descargas/DiscosPruebas/Disco4.mia                        # 50M D
 mkdiSk -sizE=20 -uniT=M -fit=WF -path=/home/mario/Descargas/DiscosPruebas/Disco5.mia                   # 20M E
 
