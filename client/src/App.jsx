@@ -57,9 +57,7 @@ function App() {
 
 // Función para el botón 'Run'
 const runCode = async () => {
-  // Obtén el valor del editor y divide en comandos
   const code = editorRef.current.getValue();
-  // Divide el código en comandos individuales, asumiendo que los comandos están separados por nuevas líneas
   const commands = code.split('\n').filter(command => command.trim() !== '');
 
   try {
@@ -68,7 +66,7 @@ const runCode = async () => {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(commands), // Enviar el array de comandos
+      body: JSON.stringify(commands),
     });
 
     if (!response.ok) {
@@ -78,15 +76,20 @@ const runCode = async () => {
     }
 
     const data = await response.json();
-    // Formatea la respuesta para mostrar resultados y errores
     let output = '';
-    // eslint-disable-next-line no-unused-vars
-    for (const [command, result] of Object.entries(data.results)) {
-      output += `${result}\n`;
+
+    // Verifica si data.results existe y es un objeto
+    if (data.results && typeof data.results === 'object') {
+      for (const result of Object.values(data.results)) {
+        output += `${result}\n`;
+      }
     }
-    // eslint-disable-next-line no-unused-vars
-    for (const [command, error] of Object.entries(data.errors)) {
-      output += `Error - ${error}\n`;
+
+    // Verifica si data.errors existe y es un objeto
+    if (data.errors && typeof data.errors === 'object') {
+      for (const error of Object.values(data.errors)) {
+        output += `Error - ${error}\n`;
+      }
     }
 
     consoleEditorRef.current.setValue(output || 'No hay salida');

@@ -8,16 +8,22 @@ import (
 	"strings"                  
 )
 
-// Analyzer analiza el comando de entrada y ejecuta la acción correspondiente
-// Analyzer analiza múltiples comandos de entrada y ejecuta las acciones correspondientes
-func Analyzer(inputs []string) (map[string]string, map[string]string) {
-    results := make(map[string]string)
-    errors := make(map[string]string)
+
+func Analyzer(inputs []string) ([]string, []string) {
+    var results []string
+    var errors []string
 
     for i, input := range inputs {
+
+        //ignorar líneas en blanco y comentarios
+        inputs := strings.TrimSpace(input)
+        if inputs == "" || strings.HasPrefix(inputs, "#") {
+            continue //ignorar comentarios y líneas en blanco
+        }
+
         tokens := strings.Fields(input)
         if len(tokens) == 0 {
-            errors[fmt.Sprintf("Comando %d", i)] = "No se proporcionó ningún comando"
+            errors = append(errors, fmt.Sprintf("Comando %d: No se proporcionó ningún comando", i))
             continue
         }
         tokens[0] = strings.ToLower(tokens[0])
@@ -45,9 +51,9 @@ func Analyzer(inputs []string) (map[string]string, map[string]string) {
         }
 
         if err != nil {
-            errors[fmt.Sprintf("Comando %d", i)] = err.Error()
+            errors = append(errors, err.Error())
         } else {
-            results[fmt.Sprintf("Comando %d", i)] = msg
+            results = append(results, msg)
         }
     }
 
