@@ -18,11 +18,11 @@ type RMDISK struct {
 func ParserRmdisk(tokens []string) (*RMDISK, string, error) {
 	cmd := &RMDISK{} // Crea una nueva instancia de RMDISK
 
-	// Unir tokens en una sola cadena y luego dividir por espacios, respetando las comillas
+
 	args := strings.Join(tokens, " ")
-	// Expresión regular para encontrar el parámetro del comando rmdisk
+
 	re := regexp.MustCompile(`(?i)-path="[^"]+"|(?i)-path=[^\s]+`)
-	// Encuentra todas las coincidencias de la expresión regular en la cadena de argumentos
+
 	matches := re.FindAllString(args, -1)
 
 	// Itera sobre cada coincidencia encontrada
@@ -30,35 +30,35 @@ func ParserRmdisk(tokens []string) (*RMDISK, string, error) {
 		// Divide cada parte en clave y valor usando "=" como delimitador
 		kv := strings.SplitN(match, "=", 2)
 		if len(kv) != 2 {
-			return nil, "", fmt.Errorf("formato de parámetro inválido: %s", match)
+			return nil, "ERROR: formato de parámetro inválido", fmt.Errorf("formato de parámetro inválido: %s", match)
 		}
 		key, value := strings.ToLower(kv[0]), kv[1]
 
-		// Remove quotes from value if present
 		if strings.HasPrefix(value, "\"") && strings.HasSuffix(value, "\"") {
 			value = strings.Trim(value, "\"")
 		}
 
 		// Switch para manejar el parámetro -path
 		switch key {
-		case "-path":
-			// Verifica que el path no esté vacío
-			if value == "" {
-				return nil, "", errors.New("el path no puede estar vacío")
-			}
-			cmd.path = value
-		default:
-			// Si el parámetro no es reconocido, devuelve un error
-			return nil, "", fmt.Errorf("parámetro desconocido: %s", key)
+
+			case "-path":
+				if value == "" {
+					return nil, "ERROR: el path no puede estar vacío", errors.New("el path no puede estar vacío")
+				}
+				cmd.path = value
+			default:
+				// Si el parámetro no es reconocido, devuelve un error
+				return nil, "ERROR: parámetro desconocido", fmt.Errorf("parámetro desconocido: %s", key)
+
 		}
+
 	}
 
 	// Verifica que el parámetro -path haya sido proporcionado
 	if cmd.path == "" {
-		return nil, "", errors.New("faltan parámetros requeridos: -path")
+		return nil, "ERROR: faltan parámetros requeridos: -path", errors.New("faltan parámetros requeridos: -path")
 	}
 
-	// SE DEBE PEDIR LA CONFIRMACION DE ELIMINAR EL DISCO, SI NO SE CONFIRMA, NO SE ELIMINA (ESTO DESDE EL FRONTEND), POR AHORA SE ELIMINA DIRECTAMENTE
 	successMsg, err := util.DeleteBinaryFile(cmd.path) // Elimina el archivo binario del disco
 	if err != nil {
 		return nil, "", err // Devuelve un error si no se pudo eliminar el disco

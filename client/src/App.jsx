@@ -55,49 +55,56 @@ function App() {
       input.click();
     };
 
-// Función para el botón 'Run'
-const runCode = async () => {
-  const code = editorRef.current.getValue();
-  const commands = code.split('\n').filter(command => command.trim() !== '');
+    // Función para el botón 'Run'
+    const runCode = async () => {
+      const code = editorRef.current.getValue();
+      const commands = code.split('\n').filter(command => command.trim() !== '');
+      let output = '';
 
-  try {
-    const response = await fetch('http://localhost:8080/analyze', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(commands),
-    });
+      for (const command of commands) {
+        if (command.toLowerCase().startsWith('rmdisk')) {
+          const confirmation = window.confirm('¿Seguro que quiere eliminar el disco?');
+          if (!confirmation) {
+            output += `El comando RMDISK: ${command} fue cancelado por el usuario.\n`;
+            continue; // Salta este comando si no se confirma
+          }
+        }
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      consoleEditorRef.current.setValue(`Error del servidor: ${errorText}`);
-      throw new Error(errorText);
-    }
+        try {
+          const response = await fetch('http://localhost:8080/analyze', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify([command]), // Envía el comando individualmente
+          });
 
-    const data = await response.json();
-    let output = '';
+          if (!response.ok) {
+            const errorText = await response.text();
+            output += `Error del servidor: ${errorText}\n`;
+            continue; // Salta el procesamiento de este comando si hay error
+          }
 
-    // Verifica si data.results existe y es un objeto
-    if (data.results && typeof data.results === 'object') {
-      for (const result of Object.values(data.results)) {
-        output += `${result}\n`;
+          const data = await response.json();
+
+          // Agrega los resultados del comando al output
+          if (data.results && typeof data.results === 'object') {
+            output += `${Object.values(data.results).join('\n')}\n`;
+          }
+
+          // Agrega los errores del comando al output
+          if (data.errors && typeof data.errors === 'object') {
+            output += `${Object.values(data.errors).map(e => `Error - ${e}`).join('\n')}\n`;
+          }
+        } catch (error) {
+          output += 'Error al conectar con el servidor.\n';
+          console.error('Error:', error);
+        }
       }
-    }
 
-    // Verifica si data.errors existe y es un objeto
-    if (data.errors && typeof data.errors === 'object') {
-      for (const error of Object.values(data.errors)) {
-        output += `Error - ${error}\n`;
-      }
-    }
+      consoleEditorRef.current.setValue(output || 'No hay salida');
+    };
 
-    consoleEditorRef.current.setValue(output || 'No hay salida');
-  } catch (error) {
-    consoleEditorRef.current.setValue('Error al conectar con el servidor.');
-    console.error('Error:', error);
-  }
-};
 
     // función para el botón 'Clear'
     const clearCode = () => {

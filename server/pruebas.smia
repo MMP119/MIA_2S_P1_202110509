@@ -4,10 +4,10 @@
 #CAMBIAR LOS IDS
 
 #CREACION DE DISCOS---------------------------------------------------
-Mkdisk -siZe=1 -unit=M -fit=FF -path="/home/mario/Descargas/Discos Pruebas/Disco1.mia"                 # 60M A
+Mkdisk -siZe=1 -unit=M -fit=FF -path="/home/mario/Descargas/DiscosPruebas/Disco1.mia"                 # 1M A
 mKdisk -uniT=k -size=51200 -fit=BF -path=/home/mario/Descargas/DiscosPruebas/Disco2.mia                # 50M B
-mkDisk -size=14  -path=/home/mario/Descargas/DiscosPruebas/Disco3.mia                                  # 13M C
-mkdIsk -Size=51200 -Unit=K -paTh=/home/mario/Descargas/DiscosPruebas/Disco4.mia                        # 50M D
+mkDisk -size=14  -path=/home/mario/Descargas/DiscosPruebas/Disco3.mia                                  # 14M C
+mkdIsk -Size=50000 -Unit=K -paTh=/home/mario/Descargas/DiscosPruebas/Disco4.mia                        # 50M D
 mkdiSk -sizE=20 -uniT=M -fit=WF -path=/home/mario/Descargas/DiscosPruebas/Disco5.mia                   # 20M E
 
 
@@ -15,11 +15,8 @@ mkdiSk -sizE=20 -uniT=M -fit=WF -path=/home/mario/Descargas/DiscosPruebas/Disco5
 rmdiSk -path=/home/mario/Descargas/DiscosPruebas/Disco3.mia 
 rmdisk -paTh=/home/mario/Descargas/DiscosPruebas/Disco5.mia 
 
+#COMANDOS MOUNT
+#	mount -path=/home/Disco1.mia -name=Part1 #id=341a
+#	mount -path=/home/Disco2.mia -name=Part1 #id=342a
+#	mount -path=/home/Disco3.mia -name=Part2 #id=343a
 
-Mkdisk -siZe=1 -unit=M -fit=FF -path="/home/mario/Descargas/DiscosPruebas/Disco1.mia"                 
-mKdisk -uniT=k -size=51200 -fit=BF -path=/home/mario/Descargas/DiscosPruebas/Disco2.mia                
-mkDisk -size=14  -path=/home/mario/Descargas/DiscosPruebas/Disco3.mia                                  
-mkdIsk -Size=51200 -Unit=K -paTh=/home/mario/Descargas/DiscosPruebas/Disco4.mia                        
-mkdiSk -sizE=20 -uniT=M -fit=WF -path=/home/mario/Descargas/DiscosPruebas/Disco5.mia                   
-rmdiSk -path=/home/mario/Descargas/DiscosPruebas/Disco3.mia 
-rmdisk -paTh=/home/mario/Descargas/DiscosPruebas/Disco5.mia 
