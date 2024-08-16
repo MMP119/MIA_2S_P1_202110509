@@ -21,12 +21,14 @@ func Float64ToBytes(f float64) [4]byte {
 
 func ConvertToBytes(size int, unit string) (int, error) {
 	switch unit {
-	case "K":
-		return size * 1024, nil // Convierte kilobytes a bytes
-	case "M":
-		return size * 1024 * 1024, nil // Convierte megabytes a bytes
-	default:
-		return 0, errors.New("invalid unit") // Devuelve un error si la unidad es inválida
+		case "B":
+			return size, nil // Devuelve el tamaño en bytes
+		case "K":
+			return size * 1024, nil // Convierte kilobytes a bytes
+		case "M":
+			return size * 1024 * 1024, nil // Convierte megabytes a bytes
+		default:
+			return 0, errors.New("invalid unit") // Devuelve un error si la unidad es inválida
 	}
 }
 
@@ -42,3 +44,9 @@ func DeleteBinaryFile(path string) (string, error) {
 }
 
 
+// ConvertToFixedSizeArray convierte un string en un array de tamaño fijo
+func ConvertToFixedSizeArray(input string, size int) [16]byte {
+	var array [16]byte
+	copy(array[:], input)
+	return array
+}

@@ -18,7 +18,7 @@ type MBR struct {
 }
 
 
-func CreateMBR(mkdisk *MKDISK, sizeBytes int) error {
+func CreateMBR(mkdisk *MKDISK, sizeBytes int) (string, error) {
 
 	var fitByte byte
 
@@ -31,7 +31,7 @@ func CreateMBR(mkdisk *MKDISK, sizeBytes int) error {
 			fitByte = 'W'
 		default:
 			fmt.Println("Invalid fit type")
-			return nil
+			return "Invalid fit type en el MBR",nil
 	}
 
 	mbr := &MBR{
@@ -47,55 +47,56 @@ func CreateMBR(mkdisk *MKDISK, sizeBytes int) error {
 		},
 	}
 
-	err := mbr.SerializeMBR(mkdisk.Path)
+	msg, err := mbr.SerializeMBR(mkdisk.Path)
 	if err != nil {
 		fmt.Println("Error:", err)
+		return msg,err
 	}
 
-	return nil
+	return "",nil
 }
 
 
-func (mbr *MBR) SerializeMBR(path string) error {
+func (mbr *MBR) SerializeMBR(path string) (string, error) {
 	file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0644)
 	if err != nil {
-		return err
+		return "Error al abrir el archivo al serializar MBR",err
 	}
 	defer file.Close()
 
 	err = binary.Write(file, binary.LittleEndian, mbr)
 	if err != nil {
-		return err
+		return "Error al escribir en el archivo al serializar MBR",err
 	}
 
-	return nil
+	return "",nil
 }
 
-func (mbr *MBR) DeserializeMBR(path string) error {
-	file, err := os.Open(path)
+func (mbr *MBR) DeserializeMBR(path string) (string, error) { // Deserializar un MBR desde un archivo esto es para leer el archivo binario y obtener la información del MBR
+	file, err := os.Open(path) // Abrir el archivo
 	if err != nil {
-		return err
+		return "Error al deserializar el MBR",err
 	}
 	defer file.Close()
 
-	mbrSize := binary.Size(mbr)
+	mbrSize := binary.Size(mbr) // Tamaño de la estructura MBR
 	if mbrSize <= 0 {
-		return fmt.Errorf("invalid MBR size: %d", mbrSize)
+		return "Tamaño inválido para el MBR",fmt.Errorf("invalid MBR size: %d", mbrSize)
 	}
 
-	buffer := make([]byte, mbrSize)
-	_, err = file.Read(buffer)
+	buffer := make([]byte, mbrSize) // Crear un buffer para leer el archivo
+	_, err = file.Read(buffer) // Leer el archivo
 	if err != nil {
-		return err
+		return "Error al leer el archivo al deserializar",err
 	}
 
-	reader := bytes.NewReader(buffer)
-	err = binary.Read(reader, binary.LittleEndian, mbr)
+	reader := bytes.NewReader(buffer) // Crear un lector para el buffer
+	err = binary.Read(reader, binary.LittleEndian, mbr) // Leer la estructura desde el buffer
 	if err != nil {
-		return err
+		return "Error al crear un nuevo buffer al deserializar",err
 	}
 
-	return nil
+	return "",nil
 }
 
 func (mbr *MBR) Print() {

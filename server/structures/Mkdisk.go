@@ -15,42 +15,43 @@ type MKDISK struct {
 }
 
 
-func CommandMkdisk(mkdisk *MKDISK) error {
+func CommandMkdisk(mkdisk *MKDISK) (string, error) {
 
 	sizeBytes, err := util.ConvertToBytes(mkdisk.Size, mkdisk.Unit)
 	if err != nil {
 		fmt.Println("Error converting size:", err)
-		return err
+		return "Error converting size MKDISK",err
 	}
 
+	var msg string
 
-	err = CreateDisk(mkdisk, sizeBytes)
+	msg, err = CreateDisk(mkdisk, sizeBytes)
 	if err != nil {
 		fmt.Println("Error creating disk:", err)
-		return err
+		return msg, err
 	}
 
-	err = CreateMBR(mkdisk, sizeBytes)
+	msg, err = CreateMBR(mkdisk, sizeBytes)
 	if err != nil {
 		fmt.Println("Error creating MBR:", err)
-		return err
+		return msg,err
 	}
 
-	return nil
+	return "",nil
 }
 
-func CreateDisk(mkdisk *MKDISK, sizeBytes int) error {
+func CreateDisk(mkdisk *MKDISK, sizeBytes int) (string, error) {
 
 	err := os.MkdirAll(filepath.Dir(mkdisk.Path), os.ModePerm)
 	if err != nil {
 		fmt.Println("Error creating directories:", err)
-		return err
+		return "Error creating directories",err
 	}
 
 	file, err := os.Create(mkdisk.Path)
 	if err != nil {
 		fmt.Println("Error creating file:", err)
-		return err
+		return "Error creating file", err
 	}
 	defer file.Close()
 
@@ -61,9 +62,9 @@ func CreateDisk(mkdisk *MKDISK, sizeBytes int) error {
 			writeSize = sizeBytes // Ajusta el tamaño de escritura si es menor que el buffer
 		}
 		if _, err := file.Write(buffer[:writeSize]); err != nil {
-			return err // Devuelve un error si la escritura falla
+			return "Error, falló la escritura en el disco",err // Devuelve un error si la escritura falla
 		}
 		sizeBytes -= writeSize // Resta el tamaño escrito del tamaño total
 	}
-	return nil
+	return "",nil
 }

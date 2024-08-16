@@ -82,9 +82,10 @@ func ParserMkdisk(tokens []string) (*structures.MKDISK, string,error) {
 		cmd.Fit = "FF"
 	}
 
-	err := structures.CommandMkdisk(cmd)
+	msg,err := structures.CommandMkdisk(cmd)
 	if err != nil {
 		fmt.Println("Error:", err)
+		return nil, msg, err
 	}
 
 	return cmd, "Disco Creado Exitosamente", nil // Devuelve el comando MKDISK creado
