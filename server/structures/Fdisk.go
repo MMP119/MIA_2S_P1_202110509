@@ -36,9 +36,22 @@ func CommandFdisk(fdisk *FDISK) (string, error) {
 			return msg, err
 		}
 	}else if(fdisk.TypE == "E"){
-		fmt.Println("Particion extendida")
+
+		msg, err = CreateExtendedPartition(fdisk, sizeBytes)
+		if err != nil {
+			fmt.Println("Error creating extended partition:", err)
+			return msg, err
+		}
+
+
 	}else if(fdisk.TypE == "L"){
-		fmt.Println("Particion logica")
+
+		msg, err = CreateLogicalPartition(fdisk, sizeBytes)
+		if err != nil {
+			fmt.Println("Error creating logical partition:", err)
+			return msg, err
+		}
+
 	}
 	return "",nil
 }
@@ -53,31 +66,39 @@ func CreatePrimaryPartition(fdisk *FDISK, sizeBytes int)(string, error){
 		return msg, fmt.Errorf("error leyendo el MBR del disco: %s", err)
 	}
 
+	// Contar el número de particiones primarias y extendidas
+	primaryCount := 0
+	extendedExists := false
+	for _, partition := range mbr.Mbr_partitions {
+		if partition.Part_status[0] != '2' {
+			if partition.Part_type[0] == 'P' {
+				primaryCount++
+			} else if partition.Part_type[0] == 'E' {
+				extendedExists = true
+			}
+		}
+	}
+
+	// Verificar que no se exceda el límite de 4 particiones
+	if primaryCount >= 3 && !extendedExists {
+		return "ERROR: No se pueden crear más de 3 particiones primarias si no hay una extendida", fmt.Errorf("límite de particiones primarias alcanzado")
+	}
+
+	if primaryCount >= 4 {
+		return "ERROR: No se pueden crear más particiones primarias", fmt.Errorf("límite de particiones primarias alcanzado")
+	}
+
 	// se obtiene la primera particion libre
 	particionDisponible, inicioParticion, indexParticion, msg:= mbr.GetFirstPartitionAvailable()
 	if particionDisponible == nil {
 		return msg, fmt.Errorf("no hay particiones disponibles")
 	}
 
-	// solo para pruebas
-
-	//print para verificar que la particion está disponible
-	// fmt.Println("\nParticion disponible:")
-	// particionDisponible.Print()
-
 	// crear la particion con los parámetros proporcionados 
 	particionDisponible.CreatePartition(inicioParticion, sizeBytes, fdisk.TypE, fdisk.Fit, fdisk.Name)
 
-	// verificar que la particion se haya creado correctamente
-	// fmt.Println("\nParticion creada(modificada):")
-	// particionDisponible.Print()
-
 	// montar la particion
 	mbr.Mbr_partitions[indexParticion] = *particionDisponible //asignar la particion al MBR
-
-	// imprimir las particiones del MBR
-	// fmt.Println("\nParticiones del MBR:")
-	// mbr.PrintPartitions()
 
 	// Serialiazar el MBR modificado
 	msg, err = mbr.SerializeMBR(fdisk.Path)
@@ -155,4 +176,72 @@ func CreatePartition(fdisk *FDISK, sizeBytes int) (string, error){
 	
 	return "",nil
 
+}
+
+
+func CreateExtendedPartition(fdisk *FDISK, sizeBytes int)(string, error){
+	
+	var mbr MBR
+
+	msg, err := mbr.DeserializeMBR(fdisk.Path)
+	if err != nil {
+		return msg, fmt.Errorf("error leyendo el MBR del disco: %s", err)
+	}
+
+	// verificar si ya existe una particion extendida
+	for _, partition := range mbr.Mbr_partitions {
+		if partition.Part_type[0] != '0' && partition.Part_type[0] == 'E' {
+			return "ERROR: ya existe una particion extendida",fmt.Errorf("ya existe una partición extendida")
+		}
+	}
+
+	// se obtiene la primera particion libre
+	particionDisponible, inicioParticion, indexParticion, msg:= mbr.GetFirstPartitionAvailable()
+	if particionDisponible == nil {
+		return msg, fmt.Errorf("no hay particiones disponibles")
+	}
+
+	// crear la particion con los parámetros proporcionados 
+	particionDisponible.CreatePartition(inicioParticion, sizeBytes, fdisk.TypE, fdisk.Fit, fdisk.Name)
+
+	// montar la particion
+	mbr.Mbr_partitions[indexParticion] = *particionDisponible //asignar la particion al MBR
+
+	// Serialiazar el MBR modificado
+	msg, err = mbr.SerializeMBR(fdisk.Path)
+	if err != nil {
+		return msg, fmt.Errorf("error escribiendo el MBR al disco: %s", err)
+	}	
+	return "",nil
+
+}
+
+
+func CreateLogicalPartition(fdisk *FDISK, sizeBytes int)(string, error){
+
+	var mbr MBR
+
+	msg, err := mbr.DeserializeMBR(fdisk.Path)
+	if err != nil {
+		return msg, fmt.Errorf("error leyendo el MBR del disco: %s", err)
+	}
+
+	// verificar si ya existe una particion extendida
+	var extendedPartition *PARTITION
+	for i := range mbr.Mbr_partitions{
+		if mbr.Mbr_partitions[i].Part_type[0] == 'E'{
+			extendedPartition = &mbr.Mbr_partitions[i]
+			break
+		}
+	}
+
+	// verificar si no existe una particion extendida
+	if extendedPartition == nil{
+		return "ERROR: no existe una particion extendida para crear la lógica",fmt.Errorf("no existe una partición extendida para crear la lógica")
+	}
+
+	// 
+
+	
+	return "",nil
 }

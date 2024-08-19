@@ -53,10 +53,10 @@ var nextLetterIndex = 0
 // GetLetter obtiene la letra asignada a un path
 func GetLetter(path string)(string, error){
 	//asignar letra si el path no tiene una asignada
-	if _, exist := pathToLetter[path]; !exist{
-		if nextLetterIndex < len(Alfabeto){
-			pathToLetter[path] = Alfabeto[nextLetterIndex]
-			nextLetterIndex++
+	if _, exist := pathToLetter[path]; !exist{ //si no existe la asignacion
+		if nextLetterIndex < len(Alfabeto){ //si hay letras disponibles
+			pathToLetter[path] = Alfabeto[nextLetterIndex] //asignar letra
+			nextLetterIndex++ //actualizar indice
 		}else{
 			return "No hay letras disponibles", errors.New("no hay letras disponibles")
 		}
