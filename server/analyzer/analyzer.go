@@ -39,6 +39,8 @@ func Analyzer(inputs []string) ([]string, []string) {
             _, msg, err = commands.ParserFdisk(tokens[1:])
         case "mount":
             _, msg, err = commands.ParserMount(tokens[1:])
+        case "rep":
+            _, msg, err = commands.ParseRep(tokens[1:])
         case "clear":
             cmd := exec.Command("clear")
             cmd.Stdout = os.Stdout

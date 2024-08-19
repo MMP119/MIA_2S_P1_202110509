@@ -5,16 +5,14 @@ import (
 	"fmt"    
 	"regexp" 
 	"strings" 
+	structures "server/structures"
 )
 
 
-type MOUNT struct {
-	path string 
-	name string 
-}
 
-func ParserMount(tokens []string) (*MOUNT, string, error) {
-	cmd := &MOUNT{}
+
+func ParserMount(tokens []string) (*structures.MOUNT, string, error) {
+	cmd := &structures.MOUNT{}
 
 	args := strings.Join(tokens, " ")
 
@@ -42,27 +40,31 @@ func ParserMount(tokens []string) (*MOUNT, string, error) {
 				if value == "" {
 					return nil,"ERROR: el path no puede estar vacío", errors.New("el path no puede estar vacío")
 				}
-				cmd.path = value
+				cmd.Path = value
 			case "-name":
 				if value == "" {
 					return nil, "ERROR: el nombre no puede estar vacío", errors.New("el nombre no puede estar vacío")
 				}
-				cmd.name = value
+				cmd.Name = value
 			default:
 				return nil, "ERROR: parámetro desconocido", fmt.Errorf("parámetro desconocido: %s", key)
 			}
 	}
 
-	// Verifica que los parámetros -path y -name hayan sido proporcionados
-	if cmd.path == "" {
+	if cmd.Path == "" {
 		return nil, "ERROR: faltan parámetros requeridos: -path", errors.New("faltan parámetros requeridos: -path")
 	}
-	if cmd.name == "" {
+	if cmd.Name == "" {
 		return nil, "ERROR: faltan parámetros requeridos: -name", errors.New("faltan parámetros requeridos: -name")
 	}
 
-	/*
-		PRÓXIMAMENTE
-	*/
+	// se monta la partición 
+
+	msg, err := structures.CommandMount(cmd)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return nil, msg, err
+	}
+
 	return cmd, "", nil // Devuelve el comando MOUNT creado
 }

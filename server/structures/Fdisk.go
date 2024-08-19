@@ -27,14 +27,66 @@ func CommandFdisk(fdisk *FDISK) (string, error) {
 	}
 
 	var msg string
-	msg, err = CreatePartition(fdisk, sizeBytes)
-	if err != nil {
-		fmt.Println("Error creating partition:", err)
-		return msg ,err
-	}
 
+	// para crear la particion primaria
+	if(fdisk.TypE == "P"){
+		msg, err = CreatePrimaryPartition(fdisk, sizeBytes)
+		if err != nil {
+			fmt.Println("Error creating primary partition:", err)
+			return msg, err
+		}
+	}else if(fdisk.TypE == "E"){
+		fmt.Println("Particion extendida")
+	}else if(fdisk.TypE == "L"){
+		fmt.Println("Particion logica")
+	}
 	return "",nil
 }
+
+
+func CreatePrimaryPartition(fdisk *FDISK, sizeBytes int)(string, error){
+	
+	var mbr MBR
+	
+	msg, err := mbr.DeserializeMBR(fdisk.Path)
+	if err != nil {
+		return msg, fmt.Errorf("error leyendo el MBR del disco: %s", err)
+	}
+
+	// se obtiene la primera particion libre
+	particionDisponible, inicioParticion, indexParticion, msg:= mbr.GetFirstPartitionAvailable()
+	if particionDisponible == nil {
+		return msg, fmt.Errorf("no hay particiones disponibles")
+	}
+
+	// solo para pruebas
+
+	//print para verificar que la particion está disponible
+	// fmt.Println("\nParticion disponible:")
+	// particionDisponible.Print()
+
+	// crear la particion con los parámetros proporcionados 
+	particionDisponible.CreatePartition(inicioParticion, sizeBytes, fdisk.TypE, fdisk.Fit, fdisk.Name)
+
+	// verificar que la particion se haya creado correctamente
+	// fmt.Println("\nParticion creada(modificada):")
+	// particionDisponible.Print()
+
+	// montar la particion
+	mbr.Mbr_partitions[indexParticion] = *particionDisponible //asignar la particion al MBR
+
+	// imprimir las particiones del MBR
+	// fmt.Println("\nParticiones del MBR:")
+	// mbr.PrintPartitions()
+
+	// Serialiazar el MBR modificado
+	msg, err = mbr.SerializeMBR(fdisk.Path)
+	if err != nil {
+		return msg, fmt.Errorf("error escribiendo el MBR al disco: %s", err)
+	}	
+	return "",nil
+}
+
 
 //funcion para crear la particion
 func CreatePartition(fdisk *FDISK, sizeBytes int) (string, error){

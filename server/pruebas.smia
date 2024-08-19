@@ -26,3 +26,20 @@ fdisk -size=1 -type=L -unit=M -fit=BF-path="/home/mario/Descargas/DiscosPruebas/
 #	mount -path=/home/Disco2.mia -name=Part1 #id=342a
 #	mount -path=/home/Disco3.mia -name=Part2 #id=343a
 
+
+"/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/disks/Disco.mia"
+"/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/disks/Disco1.mia"
+
+mkdisk -size=5 -unit=M -fit=WF -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/disks/Disco.mia"
+mkdisk -size=5 -unit=M -fit=WF -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/disks/Disco1.mia"
+
+fdisk -size=1 -type=P -unit=M -fit=BF -name="Particion1" -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/disks/Disco.mia"
+fdisk -size=2 -type=P -unit=M -fit=WF -name="Particion2" -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/disks/Disco.mia"
+fdisk -size=1 -type=P -unit=M -fit=BF -name="Particion1" -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/disks/Disco1.mia"
+
+mount -name="Particion1" -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/disks/Disco.mia"
+mount -name="Particion2" -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/disks/Disco.mia"
+mount -name="Particion1" -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/disks/Disco1.mia"
+
+rep -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/disks/Disco.mia"
+rep -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/disks/Disco1.mia"

@@ -1,23 +1,10 @@
 package utils
 
 import (
-	"encoding/binary"
 	"errors"
 	"fmt"
 	"os"
 )
-
-func Int32ToBytes(n int32) [4]byte {
-	var buf [4]byte
-	binary.LittleEndian.PutUint32(buf[:], uint32(n))
-	return buf
-}
-
-func Float64ToBytes(f float64) [4]byte {
-	var buf [4]byte
-	binary.LittleEndian.PutUint32(buf[:], uint32(f))
-	return buf
-}
 
 func ConvertToBytes(size int, unit string) (int, error) {
 	switch unit {
@@ -49,4 +36,30 @@ func ConvertToFixedSizeArray(input string, size int) [16]byte {
 	var array [16]byte
 	copy(array[:], input)
 	return array
+}
+
+const Carnet string = "09"//202110509
+var Alfabeto = []string {
+	"A", "B", "C", "D", "E", "F", "G", "H", "I", "J","K", "L", "M", "N", 
+	"O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z",
+}
+
+//map para almacenar la asignacion de letras a los path
+var pathToLetter = make(map[string]string)
+
+//indice para la siguiente letra disponible
+var nextLetterIndex = 0
+
+// GetLetter obtiene la letra asignada a un path
+func GetLetter(path string)(string, error){
+	//asignar letra si el path no tiene una asignada
+	if _, exist := pathToLetter[path]; !exist{
+		if nextLetterIndex < len(Alfabeto){
+			pathToLetter[path] = Alfabeto[nextLetterIndex]
+			nextLetterIndex++
+		}else{
+			return "No hay letras disponibles", errors.New("no hay letras disponibles")
+		}
+	}
+	return pathToLetter[path], nil
 }

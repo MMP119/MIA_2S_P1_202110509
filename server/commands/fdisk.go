@@ -46,7 +46,6 @@ func ParserFdisk(tokens []string) (*structures.FDISK, string, error) {
 		case "-unit":
 
 			value = strings.ToUpper(value)
-			fmt.Println(value)
 			if value!= "B" && value != "K" && value != "M" {
 				return nil, "ERROR: La unidad debe ser B, K o M", errors.New("la unidad debe ser B, K o M")
 			}
@@ -121,20 +120,20 @@ func ParserFdisk(tokens []string) (*structures.FDISK, string, error) {
 	//IMPRIMIR  ver MBR y Particiones -----------------------------------------
 	
 	//Crear una instancia de MBR
-	var mbr structures.MBR
+	// var mbr structures.MBR
 
-	//Deserializar la estructura MBR desde un archivo binario para obtener la información 
-	msg, err1 := mbr.DeserializeMBR(cmd.Path)
-	if err1 != nil {
-		fmt.Println("Error:", err1)
-		return nil, msg, err1
-	}
+	// //Deserializar la estructura MBR desde un archivo binario para obtener la información 
+	// msg, err1 := mbr.DeserializeMBR(cmd.Path)
+	// if err1 != nil {
+	// 	fmt.Println("Error:", err1)
+	// 	return nil, msg, err1
+	// }
 
-	//Imprimir la estructura
-	mbr.Print()
-	fmt.Println("-----------------------------")
+	// //Imprimir la estructura
+	// mbr.Print()
+	// fmt.Println("-----------------------------")
 
-	mbr.PrintPartitions()
+	// mbr.PrintPartitions()
 	//---------------------------------------------------------------------
 	
 

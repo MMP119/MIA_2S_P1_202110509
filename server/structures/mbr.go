@@ -1,12 +1,13 @@
 package structures
 
 import (
-	"bytes"           
-	"encoding/binary" 
-	"fmt"             
-	"os"             
-	"time"            
+	"bytes"
+	"encoding/binary"
+	"fmt"
 	"math/rand"
+	"os"
+	"strings"
+	"time"
 )
 
 type MBR struct {
@@ -40,10 +41,10 @@ func CreateMBR(mkdisk *MKDISK, sizeBytes int) (string, error) {
 		Mbr_disk_signature: rand.Int31(),
 		Mbr_disk_fit:       [1]byte{fitByte},
 		Mbr_partitions: [4]PARTITION{
-			{Part_status: [1]byte{'N'}, Part_type: [1]byte{'N'}, Part_fit: [1]byte{'N'}, Part_start: -1, Part_size: -1, Part_name: [16]byte{'P'}, Part_correlative: 1, Part_id: -1},
-			{Part_status: [1]byte{'N'}, Part_type: [1]byte{'N'}, Part_fit: [1]byte{'N'}, Part_start: -1, Part_size: -1, Part_name: [16]byte{'P'}, Part_correlative: 2, Part_id: -1},
-			{Part_status: [1]byte{'N'}, Part_type: [1]byte{'N'}, Part_fit: [1]byte{'N'}, Part_start: -1, Part_size: -1, Part_name: [16]byte{'P'}, Part_correlative: 3, Part_id: -1},
-			{Part_status: [1]byte{'N'}, Part_type: [1]byte{'N'}, Part_fit: [1]byte{'N'}, Part_start: -1, Part_size: -1, Part_name: [16]byte{'N'}, Part_correlative: 4, Part_id: -1},
+			{Part_status: [1]byte{'2'}, Part_type: [1]byte{'0'}, Part_fit: [1]byte{'0'}, Part_start: -1, Part_size: -1, Part_name: [16]byte{'0'}, Part_correlative: 0, Part_id: [4]byte{'0'}},
+			{Part_status: [1]byte{'2'}, Part_type: [1]byte{'0'}, Part_fit: [1]byte{'0'}, Part_start: -1, Part_size: -1, Part_name: [16]byte{'0'}, Part_correlative: 0, Part_id: [4]byte{'0'}},
+			{Part_status: [1]byte{'2'}, Part_type: [1]byte{'0'}, Part_fit: [1]byte{'0'}, Part_start: -1, Part_size: -1, Part_name: [16]byte{'0'}, Part_correlative: 0, Part_id: [4]byte{'0'}},
+			{Part_status: [1]byte{'2'}, Part_type: [1]byte{'0'}, Part_fit: [1]byte{'0'}, Part_start: -1, Part_size: -1, Part_name: [16]byte{'0'}, Part_correlative: 0, Part_id: [4]byte{'0'}},
 		},
 	}
 
@@ -120,6 +121,8 @@ func (mbr *MBR) PrintPartitions() {
 
 		// Convertir Part_name a string
 		partName := string(partition.Part_name[:])
+		// Pasar part id a string
+		partId := string(partition.Part_id[:])
 
 		fmt.Printf("Partition %d:\n", i+1)
 		fmt.Printf("  Status: %c\n", partStatus)
@@ -129,6 +132,47 @@ func (mbr *MBR) PrintPartitions() {
 		fmt.Printf("  Size: %d\n", partition.Part_size)
 		fmt.Printf("  Name: %s\n", partName)
 		fmt.Printf("  Correlative: %d\n", partition.Part_correlative)
-		fmt.Printf("  ID: %d\n", partition.Part_id)
+		fmt.Printf("  ID: %s\n", partId)
 	}
+}
+
+//Para obtener la primera particion disponible
+func (mbr *MBR) GetFirstPartitionAvailable()(*PARTITION, int, int, string) {
+	
+	//cálculo de offset para el inicio (start) de la partición
+	offset := binary.Size(mbr)	//tamaño del MBR
+
+	//recorrer las particiones
+	for i := 0; i<len(mbr.Mbr_partitions); i++ {
+		// si el star de la particion es -1, entonces la particion esta vacia, se puede usar
+		if mbr.Mbr_partitions[i].Part_start == -1 {
+			// se retorn la particion, el offset y el indice
+			return &mbr.Mbr_partitions[i], offset, i, ""  //el & es para retornar la dirección de memoria de la particion
+		}else{
+			// calcula el nuevo offset para la siguiente particion, suma el tamaño de la particion
+			offset += int(mbr.Mbr_partitions[i].Part_size)
+		}
+	}	
+	return nil, -1, -1, ""
+}
+
+//Para obtener la particion por nombre
+func (mbr *MBR) GetPartitionByName(name string) (*PARTITION, int, string) {
+
+	//recorrer las particiones
+	for i, particion := range mbr.Mbr_partitions {
+		// convertir el part_name a string y quitar los caracteres nulos
+		particionName := strings.Trim(string(particion.Part_name[:]), "\x00")
+
+		// pasar el nombre de la particion a string y quitar los caracteres nulos
+		inputName := strings.Trim(name, "\x00")
+
+		// si el nombre de la particion es igual al nombre de la particion que se busca
+		if (strings.EqualFold(particionName, inputName)) {
+			return &particion, i, "" //retornar la particion y el indice
+		}
+	}
+	return nil, -1, "No se encontró la partición"
+
+
 }
