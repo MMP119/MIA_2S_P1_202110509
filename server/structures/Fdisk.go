@@ -240,8 +240,60 @@ func CreateLogicalPartition(fdisk *FDISK, sizeBytes int)(string, error){
 		return "ERROR: no existe una particion extendida para crear la lógica",fmt.Errorf("no existe una partición extendida para crear la lógica")
 	}
 
-	// 
+	//buscar el primer EBR dentro de la particion extendida
+	var ebr EBR
+	position := extendedPartition.Part_start //posicion del ebr
 
-	
+	//leer el primer EBR
+	_, err = ebr.DeserializeEBR(fdisk.Path, position)
+
+	if err != nil {
+		// si no existe, crear el primer EBR
+		ebr = EBR{
+			Part_fit: [1]byte{fdisk.Fit[0]},
+			Part_start: position,
+			Part_size: int32(sizeBytes),
+			Part_next: -1,
+			Part_name: util.ConvertToFixedSizeArray(fdisk.Name, 16),
+		}
+		return ebr.SerializeEBR(fdisk.Path, position)
+	}
+
+	// recorrer la lista de EBRs hasta encontrar un espacio
+	for ebr.Part_next != -1 {
+		position = ebr.Part_next
+		msg, err = ebr.DeserializeEBR(fdisk.Path, position)
+		if err != nil {
+			return msg, fmt.Errorf("error leyendo el EBR: %s", err)
+		}
+	}
+
+	// crear el nuevo EBR despues del último encontrado
+	newEBR := EBR{
+		Part_fit: [1]byte{fdisk.Fit[0]},
+		Part_start: position+ebr.Part_size, // La nueva partición empieza después de la última
+		Part_size: int32(sizeBytes),
+		Part_next: -1,
+		Part_name: util.ConvertToFixedSizeArray(fdisk.Name, 16),
+	}
+
+	// verificar que haya espacio suficiente en la particion extendida
+	if newEBR.Part_start + newEBR.Part_size > extendedPartition.Part_start + extendedPartition.Part_size {
+		return "ERROR: No hay espacio suficiente para crear la partición lógica", fmt.Errorf("no hay espacio suficiente para crear la partición lógica")
+	}
+
+	// escribir el nuevo EBR en el disco
+	msg, err = newEBR.SerializeEBR(fdisk.Path, newEBR.Part_start)
+	if err != nil {
+		return msg, fmt.Errorf("error escribiendo el EBR al disco: %s", err)
+	}
+
+	// actualizar el apuntador del EBR anterior
+	ebr.Part_next = newEBR.Part_start
+	msg, err = ebr.SerializeEBR(fdisk.Path, ebr.Part_start)
+	if err != nil {
+		return msg, fmt.Errorf("error actualizando el EBR al disco: %s", err)
+	}
+		
 	return "",nil
 }

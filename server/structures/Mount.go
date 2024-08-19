@@ -20,7 +20,7 @@ func CommandMount(mount *MOUNT) (string, error) {
 	}
 
 	// buscar la particion con el nombre proporcionado
-	partition, indexPartition, msg := mbr.GetPartitionByName(mount.Name)
+	partition, indexPartition, msg := mbr.GetPartitionByName(mount.Name, mount.Path)
 	if partition == nil {
 		return msg, fmt.Errorf("no se encontró la partición con el nombre: %s", mount.Name)
 	}

@@ -40,7 +40,7 @@ func CreateMBR(mkdisk *MKDISK, sizeBytes int) (string, error) {
 		Mbr_creation_date:  float32(time.Now().Unix()),
 		Mbr_disk_signature: rand.Int31(),
 		Mbr_disk_fit:       [1]byte{fitByte},
-		Mbr_partitions: [4]PARTITION{
+		Mbr_partitions: 	[4]PARTITION{
 			{Part_status: [1]byte{'2'}, Part_type: [1]byte{'0'}, Part_fit: [1]byte{'0'}, Part_start: -1, Part_size: -1, Part_name: [16]byte{'0'}, Part_correlative: 0, Part_id: [4]byte{'0'}},
 			{Part_status: [1]byte{'2'}, Part_type: [1]byte{'0'}, Part_fit: [1]byte{'0'}, Part_start: -1, Part_size: -1, Part_name: [16]byte{'0'}, Part_correlative: 0, Part_id: [4]byte{'0'}},
 			{Part_status: [1]byte{'2'}, Part_type: [1]byte{'0'}, Part_fit: [1]byte{'0'}, Part_start: -1, Part_size: -1, Part_name: [16]byte{'0'}, Part_correlative: 0, Part_id: [4]byte{'0'}},
@@ -133,6 +133,13 @@ func (mbr *MBR) PrintPartitions() {
 		fmt.Printf("  Name: %s\n", partName)
 		fmt.Printf("  Correlative: %d\n", partition.Part_correlative)
 		fmt.Printf("  ID: %s\n", partId)
+
+		if partType == 'E' {
+			// Imprimir las particiones lógicas
+			ImprimirParticionesLogicas("/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/disks/Disco1.mia", partition.Part_start)
+		}
+
+
 	}
 }
 
@@ -157,7 +164,7 @@ func (mbr *MBR) GetFirstPartitionAvailable()(*PARTITION, int, int, string) {
 }
 
 //Para obtener la particion por nombre
-func (mbr *MBR) GetPartitionByName(name string) (*PARTITION, int, string) {
+func (mbr *MBR) GetPartitionByName(name string, path string) (*PARTITION, int, string) {
 
 	//recorrer las particiones
 	for i, particion := range mbr.Mbr_partitions {
@@ -171,8 +178,33 @@ func (mbr *MBR) GetPartitionByName(name string) (*PARTITION, int, string) {
 		if (strings.EqualFold(particionName, inputName)) {
 			return &particion, i, "" //retornar la particion y el indice
 		}
+
+		// si la particion es extendida, busca si hay particiones logicas
+		if particion.Part_type[0] == 'E' {
+			
+			var ebr EBR
+			posicionActual := particion.Part_start
+
+			for {
+				msg, err := ebr.DeserializeEBR(path, posicionActual)
+				if err != nil {
+					return nil, -1, msg
+				}
+
+				logicalPartitionName := strings.Trim((string(ebr.Part_name[:])), "\x00")
+				if strings.EqualFold(logicalPartitionName, inputName) {
+					return &particion, i, "" // encontrado en particiones lógicas
+				}
+
+				if ebr.Part_next == -1 {
+					break
+				}
+
+				posicionActual = ebr.Part_next
+
+			}
+		}
+
 	}
 	return nil, -1, "No se encontró la partición"
-
-
 }
