@@ -42,7 +42,7 @@ func (p *PARTITION) CreatePartition(partStart, partSize int, partType, partFit, 
 
 func (p *PARTITION) MountPartition(correlative int, id string) error {
 	// Asignar correlativo a la partición
-	p.Part_correlative = int32(correlative) 
+	p.Part_correlative = int32(correlative) + 1
 
 	// Asignar ID a la partición
 	copy(p.Part_id[:], id)

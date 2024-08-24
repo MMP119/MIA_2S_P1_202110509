@@ -39,14 +39,16 @@ func Analyzer(inputs []string) ([]string, []string) {
             _, msg, err = commands.ParserFdisk(tokens[1:])
         case "mount":
             _, msg, err = commands.ParserMount(tokens[1:])
+        case "mkfs":
+            _, msg, err = commands.ParserMkfs(tokens[1:])
         case "rep":
             _, msg, err = commands.ParseRep(tokens[1:])
         case "clear":
             cmd := exec.Command("clear")
             cmd.Stdout = os.Stdout
             err = cmd.Run()
-            if err == nil {
-                msg = "Terminal limpia"
+            if err != nil {
+                errors = append(errors, fmt.Sprintf("Comando %d: Error al limpiar la pantalla: %s", i, err))
             }
         default:
             err = fmt.Errorf("comando desconocido: %s", tokens[0])

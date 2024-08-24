@@ -1,7 +1,8 @@
 package structures
 
-import(
+import (
 	"fmt"
+	//global "server/global"
 	util "server/util"
 )
 
@@ -32,7 +33,8 @@ func CommandMount(mount *MOUNT) (string, error) {
 	}
 
 	//guardar la particion montada en la lista de montajes globales
-	util.GlobalMounts[id] = mount.Path
+	//util.GlobalMounts[id] = mount.Path
+	//global.MountedPartitions[id] = mount.Path
 
 	// modificar la particion para indicar que está montada
 	partition.MountPartition(indexPartition, id)

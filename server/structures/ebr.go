@@ -57,39 +57,3 @@ func (ebr *EBR) DeserializeEBR(path string, position int32) (string, error) {
 
 	return "", nil
 }
-
-// imprime las particiones lógicas dentro de la extendida
-func ImprimirParticionesLogicas (path string, startExtendida int32){
-	
-	var ebr EBR
-	posicionActual := startExtendida
-	fmt.Println("\nParticiones lógicas dentro de la extendida:")
-
-	for {
-		
-		//deseralizar el ebr en la posicion actual
-		msg, err := ebr.DeserializeEBR(path, posicionActual)
-		if err != nil {
-			fmt.Println(msg)
-			return 
-		}	
-			
-
-		// Verificar si el EBR es válido (es decir, si tiene una partición lógica)
-		if ebr.Part_size > 0 {
-			fmt.Printf("Nombre: %s, Inicio: %d, Tamaño: %d, Siguiente EBR: %d\n\n\n",
-				string(ebr.Part_name[:]), ebr.Part_start, ebr.Part_size, ebr.Part_next)
-			
-		}
-
-
-		// Si Part_next es -1, no hay más particiones lógicas
-		if ebr.Part_next == -1 {
-			break
-		}
-
-		// Actualizar la posición actual para leer el siguiente EBR
-		posicionActual = ebr.Part_next	
-	}
-
-}

@@ -3,6 +3,7 @@ package structures
 import (
 	"bytes"
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"math/rand"
 	"os"
@@ -134,12 +135,6 @@ func (mbr *MBR) PrintPartitions() {
 		fmt.Printf("  Correlative: %d\n", partition.Part_correlative)
 		fmt.Printf("  ID: %s\n", partId)
 
-		if partType == 'E' {
-			// Imprimir las particiones lógicas
-			ImprimirParticionesLogicas("/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/disks/Disco1.mia", partition.Part_start)
-		}
-
-
 	}
 }
 
@@ -207,4 +202,19 @@ func (mbr *MBR) GetPartitionByName(name string, path string) (*PARTITION, int, s
 
 	}
 	return nil, -1, "No se encontró la partición"
+}
+
+// Función para obtener una partición por ID
+func (mbr *MBR) GetPartitionByID(id string) (*PARTITION, error) {
+	for i := 0; i < len(mbr.Mbr_partitions); i++ {
+		// Convertir Part_name a string y eliminar los caracteres nulos
+		partitionID := strings.Trim(string(mbr.Mbr_partitions[i].Part_id[:]), "\x00 ")
+		// Convertir el id a string y eliminar los caracteres nulos
+		inputID := strings.Trim(id, "\x00 ")
+		// Si el nombre de la partición coincide, devolver la partición
+		if strings.EqualFold(partitionID, inputID) {
+			return &mbr.Mbr_partitions[i], nil
+		}
+	}
+	return nil, errors.New("partición no encontrada")
 }
