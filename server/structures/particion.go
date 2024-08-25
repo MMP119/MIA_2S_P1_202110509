@@ -1,6 +1,10 @@
 package structures
 
-import "fmt"
+import (
+	"encoding/binary"
+	"fmt"
+	"os"
+)
 
 type PARTITION struct {
 	Part_status      [1]byte  // Estado de la partición
@@ -51,6 +55,22 @@ func (p *PARTITION) MountPartition(correlative int, id string) error {
 	copy(p.Part_id[:], id)
 
 	return nil
+}
+
+// Serializa la partición lógica y la escribe en el disco en la posición dada
+func (p *PARTITION) SerializePartition(path string, position int32) (string, error) {
+    file, err := os.OpenFile(path, os.O_RDWR, 0644)
+    if err != nil {
+        return "error abriendo el archivo para serializar la partición lógica", fmt.Errorf("error abriendo el archivo: %s", err)
+    }
+    defer file.Close()
+
+    file.Seek(int64(position), 0)
+    err = binary.Write(file, binary.BigEndian, p)
+    if err != nil {
+        return "error escribiendo la partición lógica", fmt.Errorf("error escribiendo la partición lógica: %s", err)
+    }
+    return "", nil
 }
 
 func (p *PARTITION) Print() {

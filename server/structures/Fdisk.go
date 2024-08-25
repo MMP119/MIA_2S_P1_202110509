@@ -4,7 +4,6 @@ import (
 	"encoding/binary"
 	"fmt"
 	util "server/util"
-	"strings"
 )
 
 // FDISK estructura que representa el comando fdisk con sus parámetros
@@ -109,76 +108,6 @@ func CreatePrimaryPartition(fdisk *FDISK, sizeBytes int)(string, error){
 }
 
 
-//funcion para crear la particion
-func CreatePartition(fdisk *FDISK, sizeBytes int) (string, error){
-
-	// 1. leer el MBR del disco
-	mbr := &MBR{}
-	msg, err := mbr.DeserializeMBR(fdisk.Path)
-	if err != nil {
-		return msg, fmt.Errorf("error leyendo el MBR del disco: %s", err)	
-	}
-
-	//verficar que el nombre de la particion no exista
-	partitionName := fdisk.Name //nombre de la particion
-    for _, partition := range mbr.Mbr_partitions { //recorrer las particiones
-        if partition.Part_status[0] != 'N' { // Asegurarse de que la partición esté en uso
-            partName := strings.Trim(string(partition.Part_name[:]), "\x00") //obtener el nombre de la particion, sin caracteres nulos
-            if partName == partitionName { //si el nombre de la particion ya existe
-                return "ERROR: ya existe una particion con el nombre",fmt.Errorf("ya existe una partición con el nombre: %s", fdisk.Name)
-            }
-        }
-    }
-
-	//2. Encontrar un espacio disponible para la nueva particion
-	startPosition := int32(binary.Size(mbr)) //el inicio despues del mbr
-	for i:= 0; i<len(mbr.Mbr_partitions); i++{ //recorrer las particiones
-		partition := mbr.Mbr_partitions[i] //obtener la particion
-		if partition.Part_status[0]=='N'{ // si la particion esta vacia
-			if partition.Part_start	== -1 || partition.Part_size == -1 { //si la particion esta vacia
-				break
-			}
-		}
-		startPosition = partition.Part_start + partition.Part_size //actualizar la posicion de inicio
-	}
-
-	//verificar que haya espacion suficiente
-	if startPosition + int32(sizeBytes) > mbr.Mbr_size{ //si no hay espacio suficiente
-		return "no hay espacio suficiente para la particion",fmt.Errorf("no hay espacio suficiente para la particion") 
-	}
-	
-	//3. Crear la particion
-	newPartition := PARTITION{
-		Part_status: [1]byte{'1'}, 			//1 = activa, 0 = inactiva
-		Part_type: [1]byte{fdisk.TypE[0]}, 	//P, E, L
-		Part_fit: [1]byte{fdisk.Fit[0]}, 	//BF, FF, WF
-		Part_start: startPosition, 			//inicio de la particion
-		Part_size: int32(sizeBytes), 		//tamaño de la particion
-		Part_name: util.ConvertToFixedSizeArray(fdisk.Name, 16), //nombre de la particion
-	}
-
-	// asignar la nueva particion al MBR
-	for i:= range mbr.Mbr_partitions{ //recorrer las particiones
-		if mbr.Mbr_partitions[i].Part_status[0] == 'N'{ //si la particion esta vacia
-			mbr.Mbr_partitions[i] = newPartition //asignar la nueva particion
-			break
-		}
-	}
-
-	// 4. escribir el mbr actualizado de nuevo al disco
-	var mensaje string
-	mensaje, err = mbr.SerializeMBR(fdisk.Path)
-	if err != nil {
-		return mensaje ,fmt.Errorf("error escribiendo el MBR al disco: %s", err)
-	}
-
-	fmt.Println("particion creada con éxito")
-	
-	return "",nil
-
-}
-
-
 func CreateExtendedPartition(fdisk *FDISK, sizeBytes int)(string, error){
 	
 	var mbr MBR
@@ -217,6 +146,87 @@ func CreateExtendedPartition(fdisk *FDISK, sizeBytes int)(string, error){
 }
 
 
-func CreateLogicalPartition(fdisk *FDISK, sizeBytes int)(string, error){
-	return "",nil
+func CreateLogicalPartition(fdisk *FDISK, sizeBytes int) (string, error) {
+    var mbr MBR
+    // Deserializar el MBR del disco
+    msg, err := mbr.DeserializeMBR(fdisk.Path)
+    if err != nil {
+        return msg, fmt.Errorf("error leyendo el MBR del disco: %s", err)
+    }
+
+    // Verificar que exista una partición extendida
+    var extendedPartition *PARTITION
+    for _, partition := range mbr.Mbr_partitions {
+        if partition.Part_type[0] == 'E' {
+            extendedPartition = &partition
+            break
+        }
+    }
+    if extendedPartition == nil {
+        return "ERROR: no existe una partición extendida", fmt.Errorf("no existe una partición extendida")
+    }
+
+    // Deserializar el primer EBR en la partición extendida
+    var ebr EBR
+    ebrPosition := extendedPartition.Part_start
+    _, err = ebr.DeserializeEBR(fdisk.Path, ebrPosition)
+    if err != nil {
+        // Si no hay EBR en la partición extendida, creamos el primer EBR
+        msg, err = CreateEBR(fdisk.Path, int32(sizeBytes), extendedPartition, fdisk.Name)
+        if err != nil {
+            return msg, fmt.Errorf("error creando el EBR: %s", err)
+        }
+
+        // Crear la partición lógica justo después del EBR
+        logicalPartitionStart := extendedPartition.Part_start + int32(binary.Size(ebr)) // EBR ocupa un espacio
+        var logicalPartition PARTITION
+        logicalPartition.CreatePartition(int(logicalPartitionStart), sizeBytes, "L", fdisk.Fit, fdisk.Name)
+        
+        // Serializar la nueva partición lógica
+        msg, err = logicalPartition.SerializePartition(fdisk.Path, logicalPartitionStart)
+        if err != nil {
+            return msg, fmt.Errorf("error escribiendo la partición lógica: %s", err)
+        }
+
+        return "Partición lógica creada exitosamente", nil
+    }
+
+    // Si ya existen EBRs, avanzar hasta el último EBR
+    var lastEBR *EBR
+    for {
+        if ebr.Part_next == -1 {
+            lastEBR = &ebr
+            break
+        }
+        _, err = ebr.DeserializeEBR(fdisk.Path, ebr.Part_next)
+        if err != nil {
+            return "ERROR: no se pudo leer el último EBR", fmt.Errorf("no se pudo leer el último EBR")
+        }
+    }
+
+    // Verificar si hay espacio para una nueva partición lógica
+    newEBRStart := lastEBR.Part_start + lastEBR.Part_size
+    if newEBRStart+int32(sizeBytes) > extendedPartition.Part_start+extendedPartition.Part_size {
+        return "ERROR: no hay espacio para una nueva partición lógica", fmt.Errorf("no hay espacio suficiente")
+    }
+
+    // Crear un nuevo EBR en el espacio disponible
+    lastEBR.Part_next = newEBRStart
+    msg, err = CreateEBR(fdisk.Path, int32(sizeBytes), extendedPartition, fdisk.Name)
+    if err != nil {
+        return msg, fmt.Errorf("error creando el nuevo EBR: %s", err)
+    }
+
+    // Crear la nueva partición lógica justo después del nuevo EBR
+    logicalPartitionStart := newEBRStart + int32(binary.Size(ebr))
+    var logicalPartition PARTITION
+    logicalPartition.CreatePartition(int(logicalPartitionStart), sizeBytes, "L", fdisk.Fit, fdisk.Name)
+
+    // Serializar la nueva partición lógica
+    msg, err = logicalPartition.SerializePartition(fdisk.Path, logicalPartitionStart)
+    if err != nil {
+        return msg, fmt.Errorf("error escribiendo la partición lógica: %s", err)
+    }
+
+    return "Partición lógica creada exitosamente", nil
 }
