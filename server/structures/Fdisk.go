@@ -1,7 +1,7 @@
 package structures
 
 import (
-	//"encoding/binary"
+	"encoding/binary"
 	"fmt"
 	util "server/util"
 )
@@ -132,67 +132,51 @@ func CreateLogicalPartition(fdisk *FDISK, sizeBytes int) (string, error) {
     var ebr EBR
     ebrPosition := extendedPartition.Part_start
     _, err = ebr.DeserializeEBR(fdisk.Path, ebrPosition)
-    
-    if err != nil || string(ebr.Part_name[:]) == ""|| ebr.Part_size <= 0 || ebr.Part_next < -1 || len(ebr.Part_name) == 0 || ebr.Part_name[0] == 0{
-        // Si no existe EBR válido, crear el primer EBR
-        fmt.Println("No existe un EBR válido en la partición extendida, creando el primer EBR.")
-        
-        // Crear el primer EBR
-        _, err = CreateEBR(fdisk.Path, int32(sizeBytes), fdisk, ebrPosition)
-        if err != nil {
-            return "ERROR al crear el primer EBR", err
-        }
 
-        fmt.Println("Primer EBR creado exitosamente.")
-        return "Primer EBR creado exitosamente", nil
-    }
+	if err != nil { // Si no existe un EBR, crear el primero
+		fmt.Println("Entra acá, creando primer EBR")
+		msg, err = CreateEBR(fdisk.Path, int32(sizeBytes), fdisk, ebrPosition)
+		if err != nil {
+			return msg, fmt.Errorf("error creando el primer EBR: %s", err)
+		}
 
-    // Si ya existe un EBR válido, buscar el último EBR
-    fmt.Println("Ya existe un EBR, buscando el último EBR en la lista.")
-    var lastEBR *EBR
-    for {
-        if ebr.Part_next == -1 {
-            lastEBR = &ebr
-            break
-        }
-        _, err = ebr.DeserializeEBR(fdisk.Path, ebr.Part_next)
-        if err != nil {
-            return "ERROR: no se pudo leer el siguiente EBR", fmt.Errorf("no se pudo leer el siguiente EBR")
-        }
-    }
+		// Crear la partición lógica justo después del primer EBR
+		logicalPartitionStart := ebrPosition + int32(binary.Size(ebr)) // EBR ocupa un espacio
+		var logicalPartition PARTITION
+		logicalPartition.CreatePartition(int(logicalPartitionStart), sizeBytes, "L", fdisk.Fit, fdisk.Name)
 
-    // Si ya se encontró el último EBR, se puede crear el siguiente EBR en la lista
-    fmt.Println("Último EBR encontrado, creando el siguiente EBR.")
-    newEBRStart := lastEBR.Part_start + lastEBR.Part_size // Calcular dónde empieza el nuevo EBR
-    lastEBR.Part_next = newEBRStart // Actualizar el Part_next del último EBR
+		// Serializar el primer EBR
+		_, err = ebr.SerializeEBR(fdisk.Path, ebrPosition)
+		if err != nil {
+			return "Error serializando el primer EBR", fmt.Errorf("error escribiendo el EBR al disco: %s", err)
+		}
 
-    // Serializar el nuevo EBR en el disco
-    _, err = CreateEBR(fdisk.Path, int32(sizeBytes), fdisk, newEBRStart)
-    if err != nil {
-        return "ERROR al crear el nuevo EBR", err
-    }
+	} else { // Existe al menos un EBR, buscar el último y crear el nuevo
+		fmt.Println("Creando nuevo EBR, no es el primero")
 
-    fmt.Println("Nuevo EBR creado exitosamente.")
-    return "Nuevo EBR creado exitosamente", nil
+		// Recorrer hasta el último EBR
+		for ebr.Part_next != -1 {
+			ebrPosition = ebr.Part_next
+			_, err = ebr.DeserializeEBR(fdisk.Path, ebrPosition)
+			if err != nil {
+				return "Error deserializando EBR existente", fmt.Errorf("error deserializando: %s", err)
+			}
+		}
+
+		// Crear un nuevo EBR después del último EBR y su partición lógica
+		newEBRPosition := ebrPosition + int32(binary.Size(ebr)) + ebr.Part_size
+		msg, err = CreateEBR(fdisk.Path, int32(sizeBytes), fdisk, newEBRPosition)
+		if err != nil {
+			return msg, fmt.Errorf("error creando el nuevo EBR: %s", err)
+		}
+
+		// Actualizar el campo Part_next del EBR anterior
+		ebr.Part_next = newEBRPosition
+		_, err = ebr.SerializeEBR(fdisk.Path, ebrPosition)
+		if err != nil {
+			return "Error actualizando EBR anterior", fmt.Errorf("error escribiendo el EBR anterior al disco: %s", err)
+		}
+	}
+
+    return "EBR creado exitosamente", nil
 }
-
-
-    // var ebr EBR
-    // ebrPosition := extendedPartition.Part_start
-    // _, err = ebr.DeserializeEBR(fdisk.Path, ebrPosition)
-    // if err == nil {
-    //     // Si no hay EBR en la partición extendida, creamos el primer EBR
-    //     msg, err = CreateEBR(fdisk.Path, int32(sizeBytes), fdisk, ebrPosition)
-    //     if err != nil {
-    //         return msg, fmt.Errorf("error creando el EBR: %s", err)
-    //     }
-	// 	_, err = mbr.SerializeMBR(fdisk.Path)
-	// 	if err != nil {
-	// 		return "Error escribiendo el MBR al disco", fmt.Errorf("error escribiendo el MBR al disco: %s", err)
-	// 	}
-
-    //     // Crear la partición lógica justo después del EBR
-    //     logicalPartitionStart := extendedPartition.Part_start + int32(binary.Size(ebr)) // EBR ocupa un espacio
-    //     var logicalPartition PARTITION
-    //     logicalPartition.CreatePartition(int(logicalPartitionStart), sizeBytes, "L", fdisk.Fit, fdisk.Name)
-    // }
