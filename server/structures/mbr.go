@@ -174,32 +174,6 @@ func (mbr *MBR) GetPartitionByName(name string, path string) (*PARTITION, int, s
 			return &particion, i, "" //retornar la particion y el indice
 		}
 
-		// si la particion es extendida, busca si hay particiones logicas
-		if particion.Part_type[0] == 'E' {
-			
-			var ebr EBR
-			posicionActual := particion.Part_start
-
-			for {
-				msg, err := ebr.DeserializeEBR(path, posicionActual)
-				if err != nil {
-					return nil, -1, msg
-				}
-
-				logicalPartitionName := strings.Trim((string(ebr.Part_name[:])), "\x00")
-				if strings.EqualFold(logicalPartitionName, inputName) {
-					return &particion, i, "" // encontrado en particiones lógicas
-				}
-
-				if ebr.Part_next == -1 {
-					break
-				}
-
-				posicionActual = ebr.Part_next
-
-			}
-		}
-
 	}
 	return nil, -1, "No se encontró la partición"
 }

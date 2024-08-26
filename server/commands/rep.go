@@ -67,7 +67,6 @@ func ParseRep(tokens []string)(*REP, string, error){
 func CommandRep(cmd *REP) (string, error) {
 	// Crear una nueva estructura MBR
 	mbr := &structures.MBR{}
-	ebr := &structures.EBR{}
 
 	// Deserializar la estructura MBR desde el archivo binario
 	msg, err := mbr.DeserializeMBR(cmd.Path)
@@ -82,9 +81,6 @@ func CommandRep(cmd *REP) (string, error) {
 	// Imprimir la información de cada partición
 	fmt.Println("\nParticiones\n----------------")
 	mbr.PrintPartitions()
-
-	fmt.Println("\nEBRs\n----------------")
-	ebr.PrintEBRsAndLogicalPartitions(cmd.Path, &mbr.Mbr_partitions[2])
 
 	// Imprimir partidas montadas
 	fmt.Println("\nParticiones montadas\n----------------")

@@ -1,12 +1,12 @@
 package structures
 
-
-import(
+import (
+	"bytes"
 	"encoding/binary"
 	"fmt"
+	"io"
 	"os"
 )
-
 
 //structura del EBR
 
@@ -19,22 +19,35 @@ type EBR struct {
 	Part_name	[16]byte
 }
 
-// Crea un nuevo EBR y lo serializa en la partición extendida
-func CreateEBR(path string, size int32, extendedPartition *PARTITION, fdiskName string) (string, error) {
+func CreateEBR(path string, size int32, fdisk *FDISK, startEBR  int32) (string, error) {
+
     var newEBR EBR
 
     // Establecer valores del EBR
-    newEBR.Part_mount[0] = '0'         // Estado: inactivo (no montado)
-    newEBR.Part_fit[0] = extendedPartition.Part_fit[0] // Fit heredado de la partición extendida
-    newEBR.Part_size = size             // Tamaño de la partición lógica
-    newEBR.Part_next = -1               // No hay siguiente EBR al principio
+    newEBR.Part_mount[0] = '0'                              // Estado: inactivo (no montado)
+    newEBR.Part_fit[0] =fdisk.Fit[0]                        // Fit heredado de la partición extendida
+    newEBR.Part_start = startEBR                            // Inicio de la partición lógica
+    newEBR.Part_size = size                                 // Tamaño de la partición lógica
+    newEBR.Part_next = -1                                   // No hay siguiente EBR al principio
+    copy(newEBR.Part_name[:], []byte(fdisk.Name))           // Convert the string to a [16]byte array and assign it to Part_name
+
+
+        //imprimir la información del EBR
+        fmt.Println("\n\n\nEBR creado exitosamente")
+        fmt.Printf("  Estado: %c\n", newEBR.Part_mount[0])
+        fmt.Printf("  Ajuste: %c\n", newEBR.Part_fit[0])
+        fmt.Printf("  Inicio: %d\n", newEBR.Part_start)
+        fmt.Printf("  Tamaño: %d\n", newEBR.Part_size)
+        fmt.Printf("  Nombre: %s\n", string(newEBR.Part_name[:]))
+        fmt.Printf("  Siguiente EBR: %d\n", newEBR.Part_next)
+        fmt.Printf("\nFIN\n")
+    
 
     // Asignar el nombre (en blanco por defecto)
-    copy(newEBR.Part_name[:], fdiskName)
+    copy(newEBR.Part_name[:], fdisk.Name)
 
     // Calcular la posición del EBR dentro de la partición extendida
-    ebrPosition := extendedPartition.Part_start
-    msg, err := newEBR.SerializeEBR(path, ebrPosition)
+    msg, err := newEBR.SerializeEBR(path, startEBR)
     if err != nil {
         return msg, fmt.Errorf("error escribiendo el nuevo EBR: %v", err)
     }
@@ -42,95 +55,68 @@ func CreateEBR(path string, size int32, extendedPartition *PARTITION, fdiskName 
     return "EBR creado exitosamente", nil
 }
 
-
 // Serializa el EBR y lo escribe en el disco en la posición dada
 func (ebr *EBR) SerializeEBR(path string, position int32) (string, error) {
-	file, err := os.OpenFile(path, os.O_RDWR, 0644)
+	file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0644)
 	if err != nil {
-		return "error abriendo el archivo para serializacion el ebr",fmt.Errorf("error abriendo el archivo: %s", err)
+		return "Error al abrir el archivo al serializar MBR",err
 	}
 	defer file.Close()
 
-	file.Seek(int64(position), 0)
-	err = binary.Write(file, binary.BigEndian, ebr)
+	err = binary.Write(file, binary.LittleEndian, ebr)
 	if err != nil {
-		return "error escribiendo el EBR",fmt.Errorf("error escribiendo el EBR: %s", err)
+		return "Error al escribir en el archivo al serializar MBR",err
 	}
-	return "", nil
+
+	return "",nil
 }
 
 // Deserializa el EBR desde el disco en la posición dada
 func (ebr *EBR) DeserializeEBR(path string, position int32) (string, error) {
-	file, err := os.Open(path)
-	if err != nil {
-		return "Error abriendo el archivo para deserialización del EBR", fmt.Errorf("error abriendo el archivo: %s", err)
-	}
-	defer file.Close()
-
-	file.Seek(int64(position), 0)// Mover el puntero al inicio de la partición extendida
-	err = binary.Read(file, binary.BigEndian, ebr)// Leer el EBR
-	if err != nil {
-		return "Error leyendo el EBR", fmt.Errorf("error leyendo el EBR: %s", err)
-	}
-
-	// Verificar si el EBR es válido (por ejemplo, si Part_size es mayor que 0)
-	if ebr.Part_size <= 0 {
-		return "EBR inválido o no encontrado", fmt.Errorf("EBR inválido o no encontrado")
-	}
-
-	return "", nil
-}
-
-// Imprime la información de todos los EBRs y sus particiones lógicas asociadas
-func (ebr *EBR)PrintEBRsAndLogicalPartitions(path string, extendedPartition *PARTITION) error {
-    var currentEBR EBR
-    var logicalPartition PARTITION
-    currentEBRPosition := extendedPartition.Part_start
-
-    file, err := os.OpenFile(path, os.O_RDONLY, 0644)
+    file, err := os.Open(path)
     if err != nil {
-        return fmt.Errorf("error abriendo el archivo: %v", err)
+        return "Error abriendo el archivo para deserialización del EBR", fmt.Errorf("error abriendo el archivo: %s", err)
     }
     defer file.Close()
 
-    for {
-        // Moverse a la posición del EBR actual
-        file.Seek(int64(currentEBRPosition), 0)
-
-        // Leer el EBR en la posición actual
-        err = binary.Read(file, binary.BigEndian, &currentEBR)
-        if err != nil {
-            return fmt.Errorf("error leyendo el EBR: %v", err)
-        }
-
-        // Imprimir la información del EBR
-        fmt.Printf("EBR en la posición %d:\n", currentEBRPosition)
-        fmt.Printf("  Estado: %c\n", currentEBR.Part_mount[0])
-        fmt.Printf("  Ajuste: %c\n", currentEBR.Part_fit[0])
-        fmt.Printf("  Inicio: %d\n", currentEBR.Part_start)
-        fmt.Printf("  Tamaño: %d\n", currentEBR.Part_size)
-        fmt.Printf("  Nombre: %s\n", string(currentEBR.Part_name[:]))
-        fmt.Printf("  Siguiente EBR: %d\n", currentEBR.Part_next)
-
-        // Leer la partición lógica asociada al EBR (ubicada en Part_start del EBR)
-        file.Seek(int64(currentEBR.Part_start), 0)
-        err = binary.Read(file, binary.BigEndian, &logicalPartition)
-        if err != nil {
-            return fmt.Errorf("error leyendo la partición lógica: %v", err)
-        }
-
-        // Imprimir la información completa de la partición lógica
-        fmt.Println("Información de la partición lógica asociada:")
-        logicalPartition.Print()
-
-        // Si no hay más EBRs, terminamos el ciclo
-        if currentEBR.Part_next == -1 {
-            break
-        }
-
-        // Moverse al siguiente EBR
-        currentEBRPosition = currentEBR.Part_next
+    // Moverse a la posición del EBR
+    _, err = file.Seek(int64(position), 0)
+    if err != nil {
+        return "Error al moverse a la posición del EBR", fmt.Errorf("error al moverse a la posición: %s", err)
     }
 
-    return nil
+    // Tamaño de la estructura EBR
+    ebrSize := binary.Size(ebr)
+    if ebrSize <= 0 {
+        return "Tamaño inválido para el EBR", fmt.Errorf("tamaño inválido para el EBR: %d", ebrSize)
+    }
+
+    // Crear un buffer para leer el archivo
+    buffer := make([]byte, ebrSize)
+    bytesRead, err := file.Read(buffer)
+    if err != nil {
+        if err == io.EOF {
+            return "Fin del archivo (EOF) alcanzado al leer el EBR", io.EOF
+        }
+        return "Error al leer el archivo al deserializar el EBR", fmt.Errorf("error leyendo el archivo: %s", err)
+    }
+
+    // Verificar que se haya leído el tamaño completo
+    if bytesRead != ebrSize {
+        return "Error: lectura incompleta del EBR", fmt.Errorf("lectura incompleta, se esperaban %d bytes, se leyeron %d", ebrSize, bytesRead)
+    }
+
+    // Convertir los bytes en la estructura EBR
+    bufferReader := bytes.NewReader(buffer)
+    err = binary.Read(bufferReader, binary.LittleEndian, ebr)
+    if err != nil {
+        return "Error al deserializar el EBR desde los bytes leídos", fmt.Errorf("error deserializando: %s", err)
+    }
+
+    // Aquí agregamos la validación: verificar si el EBR es "vacío"
+    if ebr.Part_size == 0 && ebr.Part_next == -1 && len(ebr.Part_name) == 0 {
+        return "No se encontró un EBR válido en esta posición", fmt.Errorf("EBR no inicializado")
+    }
+
+    return "", nil
 }
