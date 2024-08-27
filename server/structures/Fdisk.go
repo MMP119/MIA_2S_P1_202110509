@@ -89,6 +89,11 @@ func CreatePrimaryPartition(fdisk *FDISK, sizeBytes int)(string, error){
 		return "ERROR: No se pueden crear más particiones extendidas, ya existe una en el disco", fmt.Errorf("ya existe una partición extendida")
 	}
 
+	// verificar si hay espacio suficiente en el disco
+	if sizeBytes > int(mbr.Mbr_size) {
+		return "ERROR: No hay espacio suficiente en el disco", fmt.Errorf("tamaño de la partición excede el tamaño del disco")
+	}
+
 	// se obtiene la primera particion libre
 	particionDisponible, inicioParticion, indexParticion, msg:= mbr.GetFirstPartitionAvailable()
 	if particionDisponible == nil {
@@ -129,6 +134,11 @@ func CreateLogicalPartition(fdisk *FDISK, sizeBytes int) (string, error) {
 
 	if extendedPartition == nil {
 		return "No se encontró una partición extendida", nil
+	}
+
+	// Verificar que la partición lógica no exceda el tamaño de la partición extendida
+	if sizeBytes > int(extendedPartition.Part_size) {
+		return "ERROR: Tamaño de la partición lógica excede el tamaño de la partición extendida", fmt.Errorf("tamaño de la partición lógica excede el tamaño de la partición extendida")
 	}
 
 	// Moverme al inicio de la partición extendida
@@ -177,6 +187,20 @@ func CreateLogicalPartition(fdisk *FDISK, sizeBytes int) (string, error) {
 
 		var logicalPartition PARTITION
 		logicalPartition.CreatePartition(int(logicalStart), sizeBytes, fdisk.TypE, fdisk.Fit, fdisk.Name)
+
+
+		// escribir la particion logica en el disco
+		_, err = file.Seek(int64(logicalStart), 0)
+		if err != nil {
+			return "Error al moverse al inicio de la partición lógica", err
+		}
+
+		err = binary.Write(file, binary.LittleEndian, &logicalPartition)
+		if err != nil {
+			return "Error al escribir la partición lógica", err
+		}
+
+		logicalPartition.Print()
 
 		// Serializar el MBR actualizado
 		msg, err = mbr.SerializeMBR(fdisk.Path)
@@ -245,6 +269,19 @@ func CreateLogicalPartition(fdisk *FDISK, sizeBytes int) (string, error) {
 	logicalStart := newEBRStart + int32(binary.Size(ebr1))
 	var logicalPartition PARTITION
 	logicalPartition.CreatePartition(int(logicalStart), sizeBytes, fdisk.TypE, fdisk.Fit, fdisk.Name)
+
+	// Escribir la partición lógica en el disco
+	_, err = file.Seek(int64(logicalStart), 0)
+	if err != nil {
+		return "Error al moverse al inicio de la partición lógica", err
+	}
+
+	err = binary.Write(file, binary.LittleEndian, &logicalPartition)
+	if err != nil {
+		return "Error al escribir la partición lógica", err
+	}
+
+	logicalPartition.Print()
 
 	// Serializar el MBR actualizado
 	msg, err = mbr.SerializeMBR(fdisk.Path)
