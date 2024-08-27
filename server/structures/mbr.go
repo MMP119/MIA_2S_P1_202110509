@@ -150,6 +150,7 @@ func (mbr *MBR) GetFirstPartitionAvailable()(*PARTITION, int, int, string) {
 		if mbr.Mbr_partitions[i].Part_start == -1 {
 			// se retorn la particion, el offset y el indice
 			return &mbr.Mbr_partitions[i], offset, i, ""  //el & es para retornar la dirección de memoria de la particion
+			//EL OFFSET ES EL INICIO DE LA PARTICION
 		}else{
 			// calcula el nuevo offset para la siguiente particion, suma el tamaño de la particion
 			offset += int(mbr.Mbr_partitions[i].Part_size)
