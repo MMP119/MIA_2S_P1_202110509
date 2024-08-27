@@ -88,6 +88,11 @@ func CommandMount(mount *MOUNT) (string, error) {
 		return msg, fmt.Errorf("no se encontró la partición con el nombre: %s", mount.Name)
 	}
 
+	// verificar si es una partición extendida o lógica, no se puede montar
+	if partition.Part_type[0] == 'E' || partition.Part_type[0] == 'L' {
+		return "ERROR: no se puede montar una partición extendida o lógica", errors.New("no se puede montar una partición extendida o lógica")
+	}
+
 	// se genera un id único para la partición
 	id, msg, err := GenerateIdPartition(mount, indexPartition)
 	if err != nil {
