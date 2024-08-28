@@ -201,7 +201,7 @@ func CreateLogicalPartition(fdisk *FDISK, sizeBytes int) (string, error) {
 
 	if err != nil || ebr.Part_size == 0 {
 		// Si no se encuentra un EBR válido, crear el primero
-		fmt.Println("No se encontró un EBR. Creando el primero.")
+		//fmt.Println("No se encontró un EBR. Creando el primero.")
 		
 		ebr = EBR{
 			Part_mount: [1]byte{'0'},
@@ -250,12 +250,12 @@ func CreateLogicalPartition(fdisk *FDISK, sizeBytes int) (string, error) {
 			return msg, err
 		}
 
-		fmt.Println("Primer EBR y partición lógica creados exitosamente.")
+		//fmt.Println("Primer EBR y partición lógica creados exitosamente.")
 		return "PRIMER EBR creado exitosamente", nil
 	}
 
 	// Si ya existe un EBR al inicio, recorrer hasta el último EBR
-	fmt.Println("Se encontró un EBR. Buscando el último EBR.")
+	//fmt.Println("Se encontró un EBR. Buscando el último EBR.")
 
 	for ebr.Part_next != -1 {
 		_, err = file.Seek(int64(ebr.Part_next), 0) 
@@ -333,7 +333,7 @@ func CreateLogicalPartition(fdisk *FDISK, sizeBytes int) (string, error) {
 	}
 
 	//PrintEBRs(fdisk)
-	fmt.Println("Nuevo EBR y partición lógica creados exitosamente.")
+	//fmt.Println("Nuevo EBR y partición lógica creados exitosamente.")
 
 	msg1, err := PrintEBRs(fdisk)
 	if err != nil {
@@ -384,7 +384,7 @@ func PrintEBRs(fdisk *FDISK) (string, error) {
 	}
 
 	// Leer y recorrer los EBRs
-	fmt.Println("EBRs y Particiones Lógicas:")
+	//fmt.Println("EBRs y Particiones Lógicas:")
 	for {
 		// Leer el EBR
 		var ebr EBR

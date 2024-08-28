@@ -73,8 +73,9 @@ func ParserMount(tokens []string) (*MOUNT, string, error) {
 	return cmd, "", nil // Devuelve el comando MOUNT creado
 }
 
+
 func CommandMount(mount *MOUNT) (string, error) {
-	
+
 	var mbr structures.MBR
 
 	msg, err := mbr.DeserializeMBR(mount.Path)
@@ -85,7 +86,7 @@ func CommandMount(mount *MOUNT) (string, error) {
 	// buscar la particion con el nombre proporcionado
 	partition, indexPartition, msg := mbr.GetPartitionByName(mount.Name, mount.Path)
 	if partition == nil {
-		return msg, fmt.Errorf("no se encontró la partición con el nombre: %s", mount.Name)
+		return msg, fmt.Errorf("no se encontró la partición con el nombre: %s, al montar la particion", mount.Name)
 	}
 
 	// verificar si es una partición extendida o lógica, no se puede montar
@@ -93,30 +94,36 @@ func CommandMount(mount *MOUNT) (string, error) {
 		return "ERROR: no se puede montar una partición extendida o lógica", errors.New("no se puede montar una partición extendida o lógica")
 	}
 
-	// se genera un id único para la partición
-	id, msg, err := GenerateIdPartition(mount, indexPartition)
+	// actualizar los correlativos de las particiones
+	mbr.UpdatePartitionCorrelatives()
+
+	// Después de actualizar los correlativos, obtener la partición actualizada
+	partition = &mbr.Mbr_partitions[indexPartition]
+
+	// generar un id único para la partición usando el correlativo actualizado
+	id, msg, err := GenerateIdPartition(mount, int(partition.Part_correlative))
 	if err != nil {
 		return msg, fmt.Errorf("error generando id de partición: %s", err)
 	}
 
-	//guardar la particion montada en la lista de montajes globales
-	//util.GlobalMounts[id] = mount.Path
+	// guardar la particion montada en la lista de montajes globales
 	global.MountedPartitions[id] = mount.Path
 
 	// modificar la particion para indicar que está montada
 	partition.MountPartition(indexPartition, id)
 
-	// guardar la particion mod en el mbr
+	// guardar la particion modificada en el MBR
 	mbr.Mbr_partitions[indexPartition] = *partition
 
-	// serializar el mbr
+	// serializar el MBR
 	msg, err = mbr.SerializeMBR(mount.Path)
 	if err != nil {
 		return msg, fmt.Errorf("error escribiendo el MBR en el disco: %s", err)
 	}
-	
+
 	return "", nil
 }
+
 
 
 
@@ -129,7 +136,7 @@ func GenerateIdPartition(mount *MOUNT, indexPartition int) (string, string, erro
 	}
 
 	// Crear id de partición
-	idPartition := fmt.Sprintf("%s%d%s", util.Carnet, indexPartition+1, letter)
+	idPartition := fmt.Sprintf("%s%d%s", util.Carnet, indexPartition, letter)
 
 	return idPartition, "", nil
 }

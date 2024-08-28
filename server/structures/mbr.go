@@ -192,3 +192,21 @@ func (mbr *MBR) GetPartitionByID(id string) (*PARTITION, error) {
 	}
 	return nil, errors.New("partición no encontrada")
 }
+
+func (mbr *MBR) UpdatePartitionCorrelatives() {
+    correlativo := 1
+
+    // Iterar sobre todas las particiones en el MBR
+    for i := 0; i < len(mbr.Mbr_partitions); i++ {
+        part := &mbr.Mbr_partitions[i]
+
+        // Si la partición está activa y es primaria, actualizar el correlativo
+        if part.Part_status[0] != 0 && part.Part_type[0] == 'P' {
+			part.Part_correlative = int32(correlativo)
+            correlativo++ // Incrementar solo para particiones primarias
+        } else if part.Part_type[0] == 'E' {
+            // Si es una partición extendida, el correlativo es 0
+            part.Part_correlative = 0
+        }
+    }
+}

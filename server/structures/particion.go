@@ -44,7 +44,7 @@ func (p *PARTITION) CreatePartition(partStart, partSize int, partType, partFit, 
 
 func (p *PARTITION) MountPartition(correlative int, id string) error {
 	// Asignar correlativo a la partición
-	p.Part_correlative = int32(correlative) + 1
+	//p.Part_correlative = int32(correlative) + 1
 
 	//cambiar el status de la particion, para que esté montada
 	p.Part_status[0] = '1' //indica que la particion se ha montado
