@@ -166,7 +166,6 @@ func (mbr *MBR) GetPartitionByName(name string, path string) (*PARTITION, int, s
 	for i, particion := range mbr.Mbr_partitions {
 		// convertir el part_name a string y quitar los caracteres nulos
 		particionName := strings.Trim(string(particion.Part_name[:]), "\x00")
-
 		// pasar el nombre de la particion a string y quitar los caracteres nulos
 		inputName := strings.Trim(name, "\x00")
 

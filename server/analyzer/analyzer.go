@@ -18,7 +18,11 @@ func Analyzer(inputs []string) ([]string, []string) {
         //ignorar líneas en blanco y comentarios
         inputs := strings.TrimSpace(input)
         if inputs == "" || strings.HasPrefix(inputs, "#") {
-            continue //ignorar comentarios y líneas en blanco
+            //continue //ignorar comentarios y líneas en blanco
+            fmt.Println(inputs)
+            // retornar los comentarios, para que se muestren en la consola
+            results = append(results, inputs)
+            continue
         }
 
         tokens := strings.Fields(input)
