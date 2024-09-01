@@ -102,6 +102,6 @@ func ReportInode(superblock *structures.SuperBlock, diskPath string, path string
 		return err
 	}
 
-	fmt.Println("Imagen de los inodos generada:", outputImage)
+	//fmt.Println("Imagen de los inodos generada:", outputImage)
 	return nil
 }

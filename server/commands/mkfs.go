@@ -102,7 +102,7 @@ func CommandMkfs(mkfs *MKFS) error {
 
 	// Verificar el superbloque
 	fmt.Println("\nSuperBlock:")
-	superBlock.Print()
+	//superBlock.Print()
 
 	// Crear los bitmaps
 	err = superBlock.CreateBitMaps(partitionPath)
@@ -118,7 +118,7 @@ func CommandMkfs(mkfs *MKFS) error {
 
 	// Verificar superbloque actualizado
 	fmt.Println("\nSuperBlock actualizado:")
-	superBlock.Print()
+	//superBlock.Print()
 
 	// Serializar el superbloque
 	err = superBlock.Serialize(partitionPath, int64(mountedPartition.Part_start))

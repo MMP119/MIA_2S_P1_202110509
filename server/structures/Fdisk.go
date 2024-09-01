@@ -335,12 +335,12 @@ func CreateLogicalPartition(fdisk *FDISK, sizeBytes int) (string, error) {
 	//PrintEBRs(fdisk)
 	//fmt.Println("Nuevo EBR y partición lógica creados exitosamente.")
 
-	msg1, err := PrintEBRs(fdisk)
-	if err != nil {
-		fmt.Println("Error imprimiendo los EBRs:", err)
-	} else {
-		fmt.Println(msg1)
-	}
+	//msg1, err := PrintEBRs(fdisk)
+	// if err != nil {
+	// 	fmt.Println("Error imprimiendo los EBRs:", err)
+	// } else {
+	// 	fmt.Println(msg1)
+	// }
 
 	return "EBR creado exitosamente", nil
 }

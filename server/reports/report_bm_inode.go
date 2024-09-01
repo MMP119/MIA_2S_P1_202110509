@@ -65,6 +65,6 @@ func ReportBMInode(superblock *structures.SuperBlock, diskPath string, path stri
 		return fmt.Errorf("error al escribir en el archivo TXT: %v", err)
 	}
 
-	fmt.Println("Archivo del bitmap de inodos generado:", path)
+	//fmt.Println("Archivo del bitmap de inodos generado:", path)
 	return nil
 }
