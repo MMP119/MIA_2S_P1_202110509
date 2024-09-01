@@ -137,5 +137,5 @@ func ParserFdisk(tokens []string) (*structures.FDISK, string, error) {
 	//---------------------------------------------------------------------
 	
 
-	return cmd, "", nil // Devuelve el comando FDISK creado
+	return cmd, "Comando fdisk realizado correctamente", nil // Devuelve el comando FDISK creado
 }

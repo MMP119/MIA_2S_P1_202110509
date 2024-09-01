@@ -83,7 +83,7 @@ func ParseRep(tokens []string)(*REP, string, error){
 	}
 
 	
-	return cmd, "", nil
+	return cmd, "Reporte realizado correctamente", nil
 }
 
 
@@ -158,6 +158,12 @@ func CommandRep(rep *REP) (string, error) {
 
 	case "mbr":
 		err = reports.ReportMBR(mountedMbr, rep.Path, mountedDiskPath)
+		if err != nil {
+			fmt.Printf("Error: %v\n", err)
+		}
+
+	case "disk":
+		err = reports.ReportDisk(mountedMbr, rep.Path, mountedDiskPath)
 		if err != nil {
 			fmt.Printf("Error: %v\n", err)
 		}

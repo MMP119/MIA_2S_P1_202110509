@@ -77,7 +77,7 @@ func ParserMkfs(tokens []string) (*MKFS, string,error) {
 		fmt.Println("Error:", err)
 	}
 
-	return cmd, "" ,nil // Devuelve el comando MKFS creado
+	return cmd, "mkfs realizado correctamente" ,nil // Devuelve el comando MKFS creado
 }
 
 func CommandMkfs(mkfs *MKFS) error {

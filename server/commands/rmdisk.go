@@ -61,7 +61,7 @@ func ParserRmdisk(tokens []string) (*RMDISK, string, error) {
 
 	successMsg, err := util.DeleteBinaryFile(cmd.path) // Elimina el archivo binario del disco
 	if err != nil {
-		return nil, "", err // Devuelve un error si no se pudo eliminar el disco
+		return nil, "Error al borrar Disco", err // Devuelve un error si no se pudo eliminar el disco
 	}
 
 	return cmd, successMsg ,nil // Devuelve el comando RMDISK creado

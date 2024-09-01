@@ -138,5 +138,5 @@ func GenerateIdPartition(mount *MOUNT, indexPartition int) (string, string, erro
 	// Crear id de partición
 	idPartition := fmt.Sprintf("%s%d%s", util.Carnet, indexPartition, letter)
 
-	return idPartition, "", nil
+	return idPartition, "comando mount realizado correctamente", nil
 }

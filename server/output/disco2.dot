@@ -1,0 +1,14 @@
+digraph G {
+        labelloc="t";
+        label = "Reporte de Disco";
+        node [shape=plaintext];
+        
+        tabla [label=<
+        <table border="1" cellborder="1" cellspacing="0" cellpadding="10" bgcolor="#F9F9F9">
+        <tr>
+            <td rowspan="2" bgcolor="#007ACC" border="1" color="white"><b>MBR</b></td>
+            <td rowspan="2" bgcolor="#FF5733" border="1" color="white">Particion3<br/>37.50% del Disco</td>
+            <td rowspan="2" bgcolor="#FF5733" border="1" color="white">0<br/>-0.00% del Disco</td>
+            <td rowspan="2" bgcolor="#FF5733" border="1" color="white">0<br/>-0.00% del Disco</td>
+            <td rowspan="2" bgcolor="#FF5733" border="1" color="white">0<br/>-0.00% del Disco</td>
+        <td rowspan="2" bgcolor="#E0E0E0" border="1" color="black">Espacio Libre<br/>62.50% del Disco</td></tr></table>>]; }
