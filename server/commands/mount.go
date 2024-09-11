@@ -126,16 +126,7 @@ func CommandMount(mount *MOUNT) (string, error) {
 		return msg, fmt.Errorf("error escribiendo el MBR en el disco: %s", err)
 	}
 
-	msgList, err := CommandListMount(mount.Path)
-	fmt.Println(msgList)
-	if err == nil {
-		return msgList, nil
-	}else{
-		return msgList, err
-	}
-
-
-	//return "", nil
+	return "", nil
 }
 
 
@@ -153,31 +144,4 @@ func GenerateIdPartition(mount *MOUNT, indexPartition int) (string, string, erro
 	idPartition := fmt.Sprintf("%s%d%s", util.Carnet, indexPartition, letter)
 
 	return idPartition, "comando mount realizado correctamente", nil
-}
-
-
-
-//funcion para lsitar las particiones montadas del disco que se le pase
-func CommandListMount(path string) (string, error) {
-	
-	// Obtener la lista de particiones montadas
-	partitions := []string{}
-	for id, disk := range global.MountedPartitions {
-		if(disk == path){
-			partitions = append(partitions, id)			
-		}
-	}
-
-	// Verificar si hay particiones montadas
-	if len(partitions) == 0 {
-		return "\n No hay particiones montadas en el disco \n", nil
-	}
-
-	// Crear mensaje de salida
-	msg := "\n Particiones montadas en el disco:\n"
-	for _, partition := range partitions {
-		msg += fmt.Sprintf("- %s\n", partition)
-	}
-
-	return msg, nil
 }

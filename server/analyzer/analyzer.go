@@ -47,6 +47,8 @@ func Analyzer(inputs []string) ([]string, []string) {
             _, msg, err = commands.ParserMkfs(tokens[1:])
         case "rep":
             _, msg, err = commands.ParseRep(tokens[1:])
+        case "list":
+            _, msg, err = commands.ParseList(tokens[1:])
         case "clear":
             cmd := exec.Command("clear")
             cmd.Stdout = os.Stdout
