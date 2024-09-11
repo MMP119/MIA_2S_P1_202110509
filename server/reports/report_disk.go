@@ -107,8 +107,12 @@ func ReportDisk(mbr *structures.MBR, path string, diskPath string) error {
                 }
             }
         } else {
-            partitionRows += fmt.Sprintf(`
-            <td rowspan="2" bgcolor="#FF5733" border="1" color="white">%s<br/>%.2f%% del Disco</td>`, partName, partPercentage)
+            if(string(partType) != "0"){
+                partitionRows += fmt.Sprintf(`
+                <td rowspan="2" bgcolor="#FF5733" border="1" color="white">%s<br/>%.2f%% del Disco</td>`, partName, partPercentage)
+            }
+            // partitionRows += fmt.Sprintf(`
+            // <td rowspan="2" bgcolor="#FF5733" border="1" color="white">%s<br/>%.2f%% del Disco</td>`, partName, partPercentage)
         }
     }
 
