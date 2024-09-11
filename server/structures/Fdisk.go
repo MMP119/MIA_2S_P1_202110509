@@ -64,7 +64,7 @@ func CreatePrimaryPartition(fdisk *FDISK, sizeBytes int)(string, error){
 	
 	msg, err := mbr.DeserializeMBR(fdisk.Path)
 	if err != nil {
-		return msg, fmt.Errorf("error leyendo el MBR del disco: %s", err)
+		return msg, fmt.Errorf("error leyendo el MBR del disco, el disco no existe: %s", err)
 	}
 
 	// Contar el número de particiones primarias 
@@ -354,7 +354,7 @@ func PrintEBRs(fdisk *FDISK) (string, error) {
 	// Deserializar el MBR
 	msg, err := mbr.DeserializeMBR(fdisk.Path)
 	if err != nil {
-		return msg, fmt.Errorf("error leyendo el MBR del disco: %s", err)
+		return msg, fmt.Errorf("error leyendo el MBR del disco, disco no existe: %s", err)
 	}
 
 	// Buscar la partición extendida

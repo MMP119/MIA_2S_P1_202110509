@@ -88,6 +88,6 @@ func ParserMkdisk(tokens []string) (*structures.MKDISK, string,error) {
 		return nil, msg, err
 	}
 
-	return cmd, "Disco Creado Exitosamente", nil // Devuelve el comando MKDISK creado
+	return cmd, "COMANDO MKDISK: Disco Creado Exitosamente", nil // Devuelve el comando MKDISK creado
 }
 

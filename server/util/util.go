@@ -29,7 +29,7 @@ func DeleteBinaryFile(path string) (string, error) {
 		return "", fmt.Errorf("error: no se pudo eliminar el disco: '%s'", err)
 	}
 	//fmt.Println("Disco eliminado exitosamente")
-	return "Disco eliminado exitosamente", nil
+	return "COMANDO RMDISK: Disco eliminado exitosamente", nil
 }
 
 

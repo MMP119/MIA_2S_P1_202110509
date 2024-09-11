@@ -70,7 +70,7 @@ func ParserMount(tokens []string) (*MOUNT, string, error) {
 		return nil, msg, err
 	}
 
-	return cmd, "", nil // Devuelve el comando MOUNT creado
+	return cmd, "Comando MOUNT: Montaje de particion realizado exitosamente", nil // Devuelve el comando MOUNT creado
 }
 
 
@@ -92,6 +92,11 @@ func CommandMount(mount *MOUNT) (string, error) {
 	// verificar si es una partición extendida o lógica, no se puede montar
 	if partition.Part_type[0] == 'E' || partition.Part_type[0] == 'L' {
 		return "ERROR: no se puede montar una partición extendida o lógica", errors.New("no se puede montar una partición extendida o lógica")
+	}
+
+	// verificar si la partición ya está montada
+	if partition.Part_status[0] == '1' {
+		return "ERROR: la partición %s ya está montada", errors.New("la partición ya está montada")
 	}
 
 	// actualizar los correlativos de las particiones

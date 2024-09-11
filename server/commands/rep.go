@@ -83,7 +83,7 @@ func ParseRep(tokens []string)(*REP, string, error){
 	}
 
 	
-	return cmd, "Reporte realizado correctamente", nil
+	return cmd, "Comando REP: Reporte realizado correctamente", nil
 }
 
 
