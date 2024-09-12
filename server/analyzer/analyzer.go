@@ -49,6 +49,8 @@ func Analyzer(inputs []string) ([]string, []string) {
             _, msg, err = commands.ParseRep(tokens[1:])
         case "list":
             _, msg, err = commands.ParseList(tokens[1:])
+        case "cat":
+            _, msg, err = commands.ParseCat(tokens[1:])
         case "clear":
             cmd := exec.Command("clear")
             cmd.Stdout = os.Stdout
