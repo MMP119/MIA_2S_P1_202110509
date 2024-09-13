@@ -10,8 +10,8 @@ func ParseLogout(tokens []string) (string, string, error) {
 		return "", "", fmt.Errorf("logout: número de parámetros incorrecto")
 	}
 
-	if !global.IsSessionActive() {
-		return "", "Comando LOGOUT: ERROR: No hay ninguna sesión activa", nil
+	if !global.IsAnySessionActive() {
+		return "", "Comando LOGOUT: ERROR: No hay ninguna sesión activa en ninguna particion", nil
 	}
 
 	global.DeactivateSession()

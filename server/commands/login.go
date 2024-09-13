@@ -154,14 +154,16 @@ func CommandLogin(login *LOGIN) (string, error){
 								if values[3] == login.User && values[4] == login.Pass {
 									
 									//verificar si ya hay una sesión activa
-									if global.IsSessionActive() {
+									if global.IsSessionActive(login.Id) {
 										//fmt.Println("YA HAY UNA SESION ACTIVA")
-										return "YA HAY UNA SESION ACTIVA, DEBE HACER LOGOUT!", nil
+										mensaje := "YA HAY UNA SESION ACTIVA, DEBE HACER LOGOUT EN " + login.Id
+										return mensaje, nil
 
 									} else {
 										//fmt.Println("USUARIO Y CONTRASEÑA CORRECTOS, SESION ACTIVA")	
-										global.ActivateSession()
-										return "USUARIO Y CONTRASEÑA CORRECTOS, SESION ACTIVA", nil
+										global.ActivateSession(login.Id)
+										mensaje := "USUARIO Y CONTRASEÑA CORRECTOS, SESION ACTIVA EN " + login.Id
+										return mensaje, nil
 
 									}
 								} else {
