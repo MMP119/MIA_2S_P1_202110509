@@ -23,7 +23,7 @@ func ParserMkfs(tokens []string) (*MKFS, string,error) {
 	// Unir tokens en una sola cadena y luego dividir por espacios, respetando las comillas
 	args := strings.Join(tokens, " ")
 	// Expresión regular para encontrar los parámetros del comando mkfs
-	re := regexp.MustCompile(`-id=[^\s]+|-type=[^\s]+`)
+	re := regexp.MustCompile(`(?i)-id=[^\s]+|(?i)-type=[^\s]+`)
 	// Encuentra todas las coincidencias de la expresión regular en la cadena de argumentos
 	matches := re.FindAllString(args, -1)
 
@@ -102,7 +102,7 @@ func CommandMkfs(mkfs *MKFS) error {
 
 	// Verificar el superbloque
 	fmt.Println("\nSuperBlock:")
-	//superBlock.Print()
+	superBlock.Print()
 
 	// Crear los bitmaps
 	err = superBlock.CreateBitMaps(partitionPath)
@@ -118,7 +118,7 @@ func CommandMkfs(mkfs *MKFS) error {
 
 	// Verificar superbloque actualizado
 	fmt.Println("\nSuperBlock actualizado:")
-	//superBlock.Print()
+	superBlock.Print()
 
 	// Serializar el superbloque
 	err = superBlock.Serialize(partitionPath, int64(mountedPartition.Part_start))
@@ -137,7 +137,7 @@ func calculateN(partition *structures.PARTITION) int32 {
 	*/
 
 	numerator := int(partition.Part_size) - binary.Size(structures.SuperBlock{})
-	denominator := 4 + binary.Size(structures.Inode{}) + 3*binary.Size(structures.FileBlock{}) // No importa que bloque poner, ya que todos tienen el mismo tamaño
+	denominator := 4 + binary.Size(structures.Inode{}) + 3*binary.Size(structures.FileBlock{}) 
 	n := math.Floor(float64(numerator) / float64(denominator))
 
 	return int32(n)

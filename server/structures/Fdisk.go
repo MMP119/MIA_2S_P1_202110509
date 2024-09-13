@@ -242,7 +242,7 @@ func CreateLogicalPartition(fdisk *FDISK, sizeBytes int) (string, error) {
 			return "Error al escribir la partición lógica", err
 		}
 
-		logicalPartition.Print()
+		//logicalPartition.Print()
 
 		// Serializar el MBR actualizado
 		msg, err = mbr.SerializeMBR(fdisk.Path)
@@ -324,7 +324,7 @@ func CreateLogicalPartition(fdisk *FDISK, sizeBytes int) (string, error) {
 		return "Error al escribir la partición lógica", err
 	}
 
-	logicalPartition.Print()
+	//logicalPartition.Print()
 
 	// Serializar el MBR actualizado
 	msg, err = mbr.SerializeMBR(fdisk.Path)

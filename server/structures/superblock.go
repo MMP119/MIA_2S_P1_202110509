@@ -151,14 +151,14 @@ func (sb *SuperBlock) CreateUsersFile(path string) error {
 
 	// Verificar el inodo raíz
 	fmt.Println("\nInodo Raíz:")
-	//rootInode.Print()
+	rootInode.Print()
 
 	// Verificar el bloque de carpeta raíz
 	fmt.Println("\nBloque de Carpeta Raíz:")
-	//rootBlock.Print()
+	rootBlock.Print()
 
 	// ----------- Creamos /users.txt -----------
-	usersText := "1,G,root\n1,U,root,123\n"
+	usersText := "1,G,root\n1,U,root,root,123\n"
 
 	// Deserializar el inodo raíz
 	err = rootInode.Deserialize(path, int64(sb.S_inode_start+0)) // 0 porque es el inodo raíz
@@ -246,15 +246,15 @@ func (sb *SuperBlock) CreateUsersFile(path string) error {
 
 	// Verificar el inodo raíz
 	fmt.Println("\nInodo Raíz Actualizado:")
-	//rootInode.Print()
+	rootInode.Print()
 
 	// Verificar el bloque de carpeta raíz
 	fmt.Println("\nBloque de Carpeta Raíz Actualizado:")
-	//rootBlock.Print()
+	rootBlock.Print()
 
 	// Verificar el inodo users.txt
 	fmt.Println("\nInodo users.txt:")
-	//usersInode.Print()
+	usersInode.Print()
 
 	// Verificar el bloque de users.txt
 	fmt.Println("\nBloque de users.txt:")
@@ -264,30 +264,30 @@ func (sb *SuperBlock) CreateUsersFile(path string) error {
 }
 
 // PrintSuperBlock imprime los valores de la estructura SuperBlock
-// func (sb *SuperBlock) Print() {
-// 	// Convertir el tiempo de montaje a una fecha
-// 	mountTime := time.Unix(int64(sb.S_mtime), 0)
-// 	// Convertir el tiempo de desmontaje a una fecha
-// 	unmountTime := time.Unix(int64(sb.S_umtime), 0)
+func (sb *SuperBlock) Print() {
+	// Convertir el tiempo de montaje a una fecha
+	mountTime := time.Unix(int64(sb.S_mtime), 0)
+	// Convertir el tiempo de desmontaje a una fecha
+	unmountTime := time.Unix(int64(sb.S_umtime), 0)
 
-// 	fmt.Printf("Filesystem Type: %d\n", sb.S_filesystem_type)
-// 	fmt.Printf("Inodes Count: %d\n", sb.S_inodes_count)
-// 	fmt.Printf("Blocks Count: %d\n", sb.S_blocks_count)
-// 	fmt.Printf("Free Inodes Count: %d\n", sb.S_free_inodes_count)
-// 	fmt.Printf("Free Blocks Count: %d\n", sb.S_free_blocks_count)
-// 	fmt.Printf("Mount Time: %s\n", mountTime.Format(time.RFC3339))
-// 	fmt.Printf("Unmount Time: %s\n", unmountTime.Format(time.RFC3339))
-// 	fmt.Printf("Mount Count: %d\n", sb.S_mnt_count)
-// 	fmt.Printf("Magic: %d\n", sb.S_magic)
-// 	fmt.Printf("Inode Size: %d\n", sb.S_inode_size)
-// 	fmt.Printf("Block Size: %d\n", sb.S_block_size)
-// 	fmt.Printf("First Inode: %d\n", sb.S_first_ino)
-// 	fmt.Printf("First Block: %d\n", sb.S_first_blo)
-// 	fmt.Printf("Bitmap Inode Start: %d\n", sb.S_bm_inode_start)
-// 	fmt.Printf("Bitmap Block Start: %d\n", sb.S_bm_block_start)
-// 	fmt.Printf("Inode Start: %d\n", sb.S_inode_start)
-// 	fmt.Printf("Block Start: %d\n", sb.S_block_start)
-// }
+	fmt.Printf("Filesystem Type: %d\n", sb.S_filesystem_type)
+	fmt.Printf("Inodes Count: %d\n", sb.S_inodes_count)
+	fmt.Printf("Blocks Count: %d\n", sb.S_blocks_count)
+	fmt.Printf("Free Inodes Count: %d\n", sb.S_free_inodes_count)
+	fmt.Printf("Free Blocks Count: %d\n", sb.S_free_blocks_count)
+	fmt.Printf("Mount Time: %s\n", mountTime.Format(time.RFC3339))
+	fmt.Printf("Unmount Time: %s\n", unmountTime.Format(time.RFC3339))
+	fmt.Printf("Mount Count: %d\n", sb.S_mnt_count)
+	fmt.Printf("Magic: %d\n", sb.S_magic)
+	fmt.Printf("Inode Size: %d\n", sb.S_inode_size)
+	fmt.Printf("Block Size: %d\n", sb.S_block_size)
+	fmt.Printf("First Inode: %d\n", sb.S_first_ino)
+	fmt.Printf("First Block: %d\n", sb.S_first_blo)
+	fmt.Printf("Bitmap Inode Start: %d\n", sb.S_bm_inode_start)
+	fmt.Printf("Bitmap Block Start: %d\n", sb.S_bm_block_start)
+	fmt.Printf("Inode Start: %d\n", sb.S_inode_start)
+	fmt.Printf("Block Start: %d\n", sb.S_block_start)
+}
 
 // Imprimir inodos
 func (sb *SuperBlock) PrintInodes(path string) error {
@@ -309,7 +309,7 @@ func (sb *SuperBlock) PrintInodes(path string) error {
 	return nil
 }
 
-// Impriir bloques
+// Imprimir bloques
 func (sb *SuperBlock) PrintBlocks(path string) error {
 	// Imprimir bloques
 	fmt.Println("\nBloques\n----------------")

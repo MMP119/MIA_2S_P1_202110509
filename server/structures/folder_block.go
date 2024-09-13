@@ -79,11 +79,11 @@ func (fb *FolderBlock) Deserialize(path string, offset int64) error {
 }
 
 // Print imprime los atributos del bloque de carpeta
-// func (fb *FolderBlock) Print() {
-// 	for i, content := range fb.B_content {
-// 		name := string(content.B_name[:])
-// 		fmt.Printf("Content %d:\n", i+1)
-// 		fmt.Printf("  B_name: %s\n", name)
-// 		fmt.Printf("  B_inodo: %d\n", content.B_inodo)
-// 	}
-// }
+func (fb *FolderBlock) Print() {
+	for i, content := range fb.B_content {
+		name := string(content.B_name[:])
+		fmt.Printf("Content %d:\n", i+1)
+		fmt.Printf("  B_name: %s\n", name)
+		fmt.Printf("  B_inodo: %d\n", content.B_inodo)
+	}
+}

@@ -464,3 +464,26 @@ rep -id=091C -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/out
 rep -id=091A -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/output/mbr1.png" -name=mbr
 rep -id=091B -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/output/mbr2.png" -name=mbr
 rep -id=091C -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/output/mbr3.png" -name=mbr
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+mkdisk -size=5 -unit=k -fit=FF -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/disks/Disco1.mia"
+fdisk -size=1 -type=P -unit=k -fit=FF -name="Particion2" -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/disks/Disco1.mia"
+mount -name="Particion2" -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/disks/Disco1.mia"
+mkfs -id=091A -type=full 
+login -user=root -pass=123 -id=091A
+
+
+
+
+
+--------------------------------------------------------------------
+mkdisk -size=5 -unit=k -fit=FF -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/disks/Disco1.mia"
+fdisk -size=1 -type=P -unit=k -fit=FF -name="Particion2" -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/disks/Disco1.mia"
+mount -name="Particion2" -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/disks/Disco1.mia"
+mkfs -id=091A -type=full 
+logout
+login -user=root -pass=123 -id=091A
+logout
+logout
+login -user=root -pass=123 -id=091A
