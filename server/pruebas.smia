@@ -457,6 +457,9 @@ list
 mkfs -id=091A -type=full 
 mkfs -id=092A 
 
+login -user=root -pass=123 -id=091A
+login -user=root -pass=123 -id=092A
+
 rep -id=091A -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/output/disco1.png" -name=disk
 rep -id=091B -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/output/disco2.png" -name=disk
 rep -id=091C -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/output/disco3.png" -name=disk
@@ -464,6 +467,10 @@ rep -id=091C -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/out
 rep -id=091A -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/output/mbr1.png" -name=mbr
 rep -id=091B -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/output/mbr2.png" -name=mbr
 rep -id=091C -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/output/mbr3.png" -name=mbr
+
+rep -id=091A -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/output/superBloque1.png" -name=sb
+rep -id=091B -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/output/superBloque2.png" -name=sb
+rep -id=091C -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/output/superBloque3.png" -name=sb
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -482,8 +489,6 @@ mkdisk -size=5 -unit=k -fit=FF -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_20
 fdisk -size=1 -type=P -unit=k -fit=FF -name="Particion2" -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/disks/Disco1.mia"
 mount -name="Particion2" -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/disks/Disco1.mia"
 mkfs -id=091A -type=full 
-logout
 login -user=root -pass=123 -id=091A
 logout
-logout
-login -user=root -pass=123 -id=091A
+rep -id=091A -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/output/superBloque.png" -name=sb
