@@ -40,3 +40,14 @@ func IsAnySessionActive() bool {
     }
     return false
 }
+
+func GetIDSession() string {
+    mutex.Lock()
+    defer mutex.Unlock()
+    for partitionID, active := range sessionMap {
+        if active {
+            return partitionID
+        }
+    }
+    return ""
+}

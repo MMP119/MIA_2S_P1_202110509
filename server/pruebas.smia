@@ -490,5 +490,13 @@ fdisk -size=1 -type=P -unit=k -fit=FF -name="Particion2" -path="/home/mario/Escr
 mount -name="Particion2" -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/disks/Disco1.mia"
 mkfs -id=091A -type=full 
 login -user=root -pass=123 -id=091A
-logout
+mkfile -size=15 -path=/home/user/docs/a.txt -r
+
+#mkdir -p -path=/home
+#mkdir -p -path=/home/user
+#mkdir -p -path=/home/user/doc
+
+#logout
+
+
 rep -id=091A -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/output/superBloque.png" -name=sb

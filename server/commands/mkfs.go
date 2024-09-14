@@ -88,21 +88,21 @@ func CommandMkfs(mkfs *MKFS) error {
 	}
 
 	// Verificar la partición montada
-	fmt.Println("\nPatición montada:")
-	mountedPartition.Print()
+	// fmt.Println("\nPatición montada:")
+	// mountedPartition.Print()
 
 	// Calcular el valor de n
 	n := calculateN(mountedPartition)
 
 	// Verificar el valor de n
-	fmt.Println("\nValor de n:", n)
+	//fmt.Println("\nValor de n:", n)
 
 	// Inicializar un nuevo superbloque
 	superBlock := createSuperBlock(mountedPartition, n)
 
 	// Verificar el superbloque
-	fmt.Println("\nSuperBlock:")
-	superBlock.Print()
+	// fmt.Println("\nSuperBlock:")
+	// superBlock.Print()
 
 	// Crear los bitmaps
 	err = superBlock.CreateBitMaps(partitionPath)
@@ -117,8 +117,8 @@ func CommandMkfs(mkfs *MKFS) error {
 	}
 
 	// Verificar superbloque actualizado
-	fmt.Println("\nSuperBlock actualizado:")
-	superBlock.Print()
+	// fmt.Println("\nSuperBlock actualizado:")
+	// superBlock.Print()
 
 	// Serializar el superbloque
 	err = superBlock.Serialize(partitionPath, int64(mountedPartition.Part_start))

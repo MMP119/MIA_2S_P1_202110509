@@ -55,6 +55,10 @@ func Analyzer(inputs []string) ([]string, []string) {
             _, msg, err = commands.ParseLogin(tokens[1:])
         case "logout":
             _, msg, err = commands.ParseLogout(tokens[1:])
+        case "mkdir":
+            _, msg, err = commands.ParseMkdir(tokens[1:])
+        case "mkfile":
+            _, msg, err = commands.ParseMkfile(tokens[1:])
         case "clear":
             cmd := exec.Command("clear")
             cmd.Stdout = os.Stdout

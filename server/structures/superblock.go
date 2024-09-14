@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"os"
 	"time"
+	utils "server/util"
+	"strings"
 )
 
 type SuperBlock struct {
@@ -149,13 +151,13 @@ func (sb *SuperBlock) CreateUsersFile(path string) error {
 	sb.S_free_blocks_count--
 	sb.S_first_blo += sb.S_block_size
 
-	// Verificar el inodo raíz
-	fmt.Println("\nInodo Raíz:")
-	rootInode.Print()
+	// // Verificar el inodo raíz
+	// fmt.Println("\nInodo Raíz:")
+	// rootInode.Print()
 
-	// Verificar el bloque de carpeta raíz
-	fmt.Println("\nBloque de Carpeta Raíz:")
-	rootBlock.Print()
+	// // Verificar el bloque de carpeta raíz
+	// fmt.Println("\nBloque de Carpeta Raíz:")
+	// rootBlock.Print()
 
 	// ----------- Creamos /users.txt -----------
 	usersText := "1,G,root\n1,U,root,root,123\n"
@@ -245,23 +247,366 @@ func (sb *SuperBlock) CreateUsersFile(path string) error {
 	sb.S_first_blo += sb.S_block_size
 
 	// Verificar el inodo raíz
-	fmt.Println("\nInodo Raíz Actualizado:")
-	rootInode.Print()
+	// fmt.Println("\nInodo Raíz Actualizado:")
+	// rootInode.Print()
 
-	// Verificar el bloque de carpeta raíz
-	fmt.Println("\nBloque de Carpeta Raíz Actualizado:")
-	rootBlock.Print()
+	// // Verificar el bloque de carpeta raíz
+	// fmt.Println("\nBloque de Carpeta Raíz Actualizado:")
+	// rootBlock.Print()
 
-	// Verificar el inodo users.txt
-	fmt.Println("\nInodo users.txt:")
-	usersInode.Print()
+	// // Verificar el inodo users.txt
+	// fmt.Println("\nInodo users.txt:")
+	// usersInode.Print()
 
-	// Verificar el bloque de users.txt
-	fmt.Println("\nBloque de users.txt:")
-	usersBlock.Print()
+	// // Verificar el bloque de users.txt
+	// fmt.Println("\nBloque de users.txt:")
+	// usersBlock.Print()
 
 	return nil
 }
+
+
+// funcion para crear una carpeta en el sistema de archivos
+func (sb *SuperBlock) CreateFolder(path string, parentsDir []string, destDir string) error {
+	// Si parentsDir está vacío, solo trabajar con el primer inodo que sería el raíz "/"
+	if len(parentsDir) == 0 {
+		return sb.createFolderInInode(path, 0, parentsDir, destDir)
+	}
+
+	// Iterar sobre cada inodo ya que se necesita buscar el inodo padre
+	for i := int32(0); i < sb.S_inodes_count; i++ {
+		err := sb.createFolderInInode(path, i, parentsDir, destDir)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+
+// funcion para crear una carpeta en un inodo específico
+func (sb *SuperBlock) createFolderInInode(path string, inodeIndex int32, parentsDir []string, destDir string) error {
+	// Crear un nuevo inodo
+	inode := &Inode{}
+	// Deserializar el inodo
+	err := inode.Deserialize(path, int64(sb.S_inode_start+(inodeIndex*sb.S_inode_size)))
+	if err != nil {
+		return err
+	}
+	// Verificar si el inodo es de tipo carpeta
+	if inode.I_type[0] == '1' {
+		return nil
+	}
+
+	// Iterar sobre cada bloque del inodo (apuntadores)
+	for _, blockIndex := range inode.I_block {
+		// Si el bloque no existe, salir
+		if blockIndex == -1 {
+			break
+		}
+
+		// Crear un nuevo bloque de carpeta
+		block := &FolderBlock{}
+
+		// Deserializar el bloque
+		err := block.Deserialize(path, int64(sb.S_block_start+(blockIndex*sb.S_block_size))) // 64 porque es el tamaño de un bloque
+		if err != nil {
+			return err
+		}
+
+		// Iterar sobre cada contenido del bloque, desde el index 2 porque los primeros dos son . y ..
+		for indexContent := 2; indexContent < len(block.B_content); indexContent++ {
+			// Obtener el contenido del bloque
+			content := block.B_content[indexContent]
+
+			// Sí las carpetas padre no están vacías debereamos buscar la carpeta padre más cercana
+			if len(parentsDir) != 0 {
+
+				// Si el contenido está vacío, salir
+				if content.B_inodo == -1 {
+					break
+				}
+
+				// Obtenemos la carpeta padre más cercana
+				parentDir, err := utils.First(parentsDir)
+				if err != nil {
+					return err
+				}
+
+				// Convertir B_name a string y eliminar los caracteres nulos
+				contentName := strings.Trim(string(content.B_name[:]), "\x00 ")
+				// Convertir parentDir a string y eliminar los caracteres nulos
+				parentDirName := strings.Trim(parentDir, "\x00 ")
+				// Si el nombre del contenido coincide con el nombre de la carpeta padre
+				if strings.EqualFold(contentName, parentDirName) {
+					//fmt.Println("---------LA ENCONTRÉ-------")
+					// Si son las mismas, entonces entramos al inodo que apunta el bloque
+					err := sb.createFolderInInode(path, content.B_inodo, utils.RemoveElement(parentsDir, 0), destDir)
+					if err != nil {
+						return err
+					}
+					return nil
+				}
+			} else {
+
+				// Si el apuntador al inodo está ocupado, continuar con el siguiente
+				if content.B_inodo != -1 {
+					continue
+				}
+
+				// Actualizar el contenido del bloque
+				copy(content.B_name[:], destDir)
+				content.B_inodo = sb.S_inodes_count
+
+				// Actualizar el bloque
+				block.B_content[indexContent] = content
+
+				// Serializar el bloque
+				err = block.Serialize(path, int64(sb.S_block_start+(blockIndex*sb.S_block_size)))
+				if err != nil {
+					return err
+				}
+
+				// Crear el inodo de la carpeta
+				folderInode := &Inode{
+					I_uid:   1,
+					I_gid:   1,
+					I_size:  0,
+					I_atime: float32(time.Now().Unix()),
+					I_ctime: float32(time.Now().Unix()),
+					I_mtime: float32(time.Now().Unix()),
+					I_block: [15]int32{sb.S_blocks_count, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+					I_type:  [1]byte{'0'},
+					I_perm:  [3]byte{'6', '6', '4'},
+				}
+
+				// Serializar el inodo de la carpeta
+				err = folderInode.Serialize(path, int64(sb.S_first_ino))
+				if err != nil {
+					return err
+				}
+
+				// Actualizar el bitmap de inodos
+				err = sb.UpdateBitmapInode(path)
+				if err != nil {
+					return err
+				}
+
+				// Actualizar el superbloque
+				sb.S_inodes_count++
+				sb.S_free_inodes_count--
+				sb.S_first_ino += sb.S_inode_size
+
+				// Crear el bloque de la carpeta
+				folderBlock := &FolderBlock{
+					B_content: [4]FolderContent{
+						{B_name: [12]byte{'.'}, B_inodo: content.B_inodo},
+						{B_name: [12]byte{'.', '.'}, B_inodo: inodeIndex},
+						{B_name: [12]byte{'-'}, B_inodo: -1},
+						{B_name: [12]byte{'-'}, B_inodo: -1},
+					},
+				}
+
+				// Serializar el bloque de la carpeta
+				err = folderBlock.Serialize(path, int64(sb.S_first_blo))
+				if err != nil {
+					return err
+				}
+
+				// Actualizar el bitmap de bloques
+				err = sb.UpdateBitmapBlock(path)
+				if err != nil {
+					return err
+				}
+
+				// Actualizar el superbloque
+				sb.S_blocks_count++
+				sb.S_free_blocks_count--
+				sb.S_first_blo += sb.S_block_size
+
+				return nil
+			}
+		}
+
+	}
+	return nil
+}
+
+
+// CreateFile crea un archivo en el sistema de archivos
+func (sb *SuperBlock) CreateFile(path string, parentsDir []string, destFile string, size int, cont []string) error {
+
+	// Si parentsDir está vacío, solo trabajar con el primer inodo que sería el raíz "/"
+	if len(parentsDir) == 0 {
+		return sb.createFileInInode(path, 0, parentsDir, destFile, size, cont)
+	}
+
+	// Iterar sobre cada inodo ya que se necesita buscar el inodo padre
+	for i := int32(0); i < sb.S_inodes_count; i++ {
+		err := sb.createFileInInode(path, i, parentsDir, destFile, size, cont)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+
+// createFolderinode crea un archivo en un inodo específico
+func (sb *SuperBlock) createFileInInode(path string, inodeIndex int32, parentsDir []string, destFile string, fileSize int, fileContent []string) error {
+	// Crear un nuevo inodo
+	inode := &Inode{}
+	// Deserializar el inodo
+	err := inode.Deserialize(path, int64(sb.S_inode_start+(inodeIndex*sb.S_inode_size)))
+	if err != nil {
+		return err
+	}
+	// Verificar si el inodo es de tipo carpeta
+	if inode.I_type[0] == '1' {
+		return nil
+	}
+
+	// Iterar sobre cada bloque del inodo (apuntadores)
+	for _, blockIndex := range inode.I_block {
+		// Si el bloque no existe, salir
+		if blockIndex == -1 {
+			break
+		}
+
+		// Crear un nuevo bloque de carpeta
+		block := &FolderBlock{}
+
+		// Deserializar el bloque
+		err := block.Deserialize(path, int64(sb.S_block_start+(blockIndex*sb.S_block_size))) // 64 porque es el tamaño de un bloque
+		if err != nil {
+			return err
+		}
+
+		// Iterar sobre cada contenido del bloque, desde el index 2 porque los primeros dos son . y ..
+		for indexContent := 2; indexContent < len(block.B_content); indexContent++ {
+			// Obtener el contenido del bloque
+			content := block.B_content[indexContent]
+
+			// Sí las carpetas padre no están vacías debereamos buscar la carpeta padre más cercana
+			if len(parentsDir) != 0 {
+				//fmt.Println("---------ESTOY  VISITANDO--------")
+
+				// Si el contenido está vacío, salir
+				if content.B_inodo == -1 {
+					break
+				}
+
+				// Obtenemos la carpeta padre más cercana
+				parentDir, err := utils.First(parentsDir)
+				if err != nil {
+					return err
+				}
+
+				// Convertir B_name a string y eliminar los caracteres nulos
+				contentName := strings.Trim(string(content.B_name[:]), "\x00 ")
+				// Convertir parentDir a string y eliminar los caracteres nulos
+				parentDirName := strings.Trim(parentDir, "\x00 ")
+				// Si el nombre del contenido coincide con el nombre de la carpeta padre
+				if strings.EqualFold(contentName, parentDirName) {
+					//fmt.Println("---------ESTOY  ENCONTRANDO--------")
+					// Si son las mismas, entonces entramos al inodo que apunta el bloque
+					err := sb.createFileInInode(path, content.B_inodo, utils.RemoveElement(parentsDir, 0), destFile, fileSize, fileContent)
+					if err != nil {
+						return err
+					}
+					return nil
+				}
+			} else {
+				//fmt.Println("---------ESTOY  CREANDO--------")
+
+				// Si el apuntador al inodo está ocupado, continuar con el siguiente
+				if content.B_inodo != -1 {
+					continue
+				}
+
+				// Actualizar el contenido del bloque
+				copy(content.B_name[:], []byte(destFile))
+				content.B_inodo = sb.S_inodes_count
+
+				// Actualizar el bloque
+				block.B_content[indexContent] = content
+
+				// Serializar el bloque
+				err = block.Serialize(path, int64(sb.S_block_start+(blockIndex*sb.S_block_size)))
+				if err != nil {
+					return err
+				}
+
+				// Crear el inodo del archivo
+				fileInode := &Inode{
+					I_uid:   1,
+					I_gid:   1,
+					I_size:  int32(fileSize),
+					I_atime: float32(time.Now().Unix()),
+					I_ctime: float32(time.Now().Unix()),
+					I_mtime: float32(time.Now().Unix()),
+					I_block: [15]int32{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+					I_type:  [1]byte{'1'},
+					I_perm:  [3]byte{'6', '6', '4'},
+				}
+
+				// Crear el bloques del archivo
+				for i := 0; i < len(fileContent); i++ {
+					// Actualizamos el inodo del archivo
+					fileInode.I_block[i] = sb.S_blocks_count
+
+					// Creamos el bloque del archivo
+					fileBlock := &FileBlock{
+						B_content: [64]byte{},
+					}
+					// Copiamos el texto de usuarios en el bloque
+					copy(fileBlock.B_content[:], fileContent[i])
+
+					// Serializar el bloque de users.txt
+					err = fileBlock.Serialize(path, int64(sb.S_first_blo))
+					if err != nil {
+						return err
+					}
+
+					// Actualizar el bitmap de bloques
+					err = sb.UpdateBitmapBlock(path)
+					if err != nil {
+						return err
+					}
+
+					// Actualizamos el superbloque
+					sb.S_blocks_count++
+					sb.S_free_blocks_count--
+					sb.S_first_blo += sb.S_block_size
+				}
+
+				// Serializar el inodo de la carpeta
+				err = fileInode.Serialize(path, int64(sb.S_first_ino))
+				if err != nil {
+					return err
+				}
+
+				// Actualizar el bitmap de inodos
+				err = sb.UpdateBitmapInode(path)
+				if err != nil {
+					return err
+				}
+
+				// Actualizar el superbloque
+				sb.S_inodes_count++
+				sb.S_free_inodes_count--
+				sb.S_first_ino += sb.S_inode_size
+
+				return nil
+			}
+		}
+
+	}
+	return nil
+}
+
 
 // PrintSuperBlock imprime los valores de la estructura SuperBlock
 func (sb *SuperBlock) Print() {
@@ -303,7 +648,7 @@ func (sb *SuperBlock) PrintInodes(path string) error {
 		}
 		// Imprimir el inodo
 		fmt.Printf("\nInodo %d:\n", i)
-		//inode.Print()
+		inode.Print()
 	}
 
 	return nil
@@ -337,7 +682,7 @@ func (sb *SuperBlock) PrintBlocks(path string) error {
 				}
 				// Imprimir el bloque
 				fmt.Printf("\nBloque %d:\n", blockIndex)
-				//block.Print()
+				block.Print()
 				continue
 
 				// Si el inodo es de tipo archivo

@@ -3,9 +3,8 @@ package commands
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
-	"os"
 	"regexp"
+	global "server/global"
 	"strings"
 )
 
@@ -66,20 +65,25 @@ func ParseCat(tokens []string) (*CAT, string, error) {
 
 func CommandCAT(cmd *CAT) (string, error){
 	
-	//se debe leer el archivo y retornar el contenido del archivo, si no existe el archivo se debe retornar un error
-	file, err := os.Open(cmd.Filen)
+	// leer un archivo que esté en la ruta especificada dentro del bloque
+	// inodo -> bloque -> contenido
+
+	//la ruta del archivo es cmd.Filen, donde está el inodo -> bloque -> contenido
+
+	//obtener el id de la particion donde se está logueado
+	idPartition := global.GetIDSession()
+
+	//obtenemos primero el superbloque para obtener el inodo raíz y luego el inodo del archivo
+	partitionSuperblock, partition, partitionPath, err := global.GetMountedPartitionSuperblock(idPartition)
 	if err != nil {
-		return "Error: no se pudo abrir el archivo", fmt.Errorf("error: no se pudo abrir el archivo: '%s'", err)
+		return "Error al obtener la partición montada en el comando login", fmt.Errorf("error al obtener la partición montada: %v", err)
 	}
 
-	defer file.Close()
 
-	//leer el contenido del archivo
-	content, err := ioutil.ReadAll(file)
-	if err != nil {
-		return "Error: no se pudo leer el archivo", fmt.Errorf("error: no se pudo leer el archivo: '%s'", err)
-	}
+	
 
-	return string(content), nil
+
+
+
 
 }
