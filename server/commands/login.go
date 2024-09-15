@@ -80,7 +80,7 @@ func CommandLogin(login *LOGIN) (string, error){
 	// ir al archivo users.txt y buscar el usuario y la contraseña
 
 	//obtener la particion con el id en donde se realizará el login
-	partitionSuperblock, partition, partitionPath, err := global.GetMountedPartitionSuperblock(login.Id)
+	partitionSuperblock, _, partitionPath, err := global.GetMountedPartitionSuperblock(login.Id)
 	if err != nil {
 		return "Error al obtener la partición montada en el comando login", fmt.Errorf("error al obtener la partición montada: %v", err)
 	}
@@ -180,12 +180,6 @@ func CommandLogin(login *LOGIN) (string, error){
 		}
 
 		
-	}
-
-
-	err = partitionSuperblock.Serialize(partitionPath, int64(partition.Part_start))
-	if err != nil {
-		return "error al serializar el superbloque de la partición",fmt.Errorf("error al serializar el superbloque de la partición: %v", err)
 	}
 
 	return "",nil
