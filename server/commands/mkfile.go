@@ -10,6 +10,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"io/ioutil"
 )
 
 
@@ -128,6 +129,25 @@ func commandMkfile(mkfile *MKFILE) (string, error) {
 	// Generar el contenido del archivo si no se proporcionó
 	if mkfile.Cont == "" {
 		mkfile.Cont = generateContent(mkfile.Size)
+	}
+
+	if mkfile.Cont != "" && mkfile.Size != 0 {
+		return "ERROR: no se puede proporcionar contenido y tamaño al mismo tiempo", errors.New("no se puede proporcionar contenido y tamaño al mismo tiempo")
+	}
+
+	if mkfile.Cont != "" && mkfile.Size == 0 {
+
+		//leer un archivo de mi pc, obtener el contenido y ponerlo en mkfile.Cont
+		content, err := ioutil.ReadFile(mkfile.Cont)
+		if err != nil {
+			return "ERROR: al leer el archivo",fmt.Errorf("al leer el archivo: %w", err)
+		}
+
+		//asignar el contenido del archivo a mkfile.Cont
+		mkfile.Cont = string(content)
+
+		//asignar el tamaño del archivo
+		mkfile.Size = len(mkfile.Cont)
 	}
 
 	fmt.Println("\nContenido del archivo:", mkfile.Cont)
