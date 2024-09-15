@@ -59,6 +59,8 @@ func Analyzer(inputs []string) ([]string, []string) {
             _, msg, err = commands.ParseMkdir(tokens[1:])
         case "mkfile":
             _, msg, err = commands.ParseMkfile(tokens[1:])
+        case "mkgrp":
+            _, msg, err = commands.ParseMkgrp(tokens[1:])
         case "clear":
             cmd := exec.Command("clear")
             cmd.Stdout = os.Stdout

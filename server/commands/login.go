@@ -140,39 +140,34 @@ func CommandLogin(login *LOGIN) (string, error){
 					*/
 
 					// obtener el usuario y la contraseña
-					users := strings.Split(strings.TrimSpace(string(fileBlock.B_content[:])), "\n")
+					contenido := strings.Trim(string(fileBlock.B_content[:]), "\x00")// Elimina caracteres nulos
+
+					// Reemplazar \r\n con \n para asegurar saltos de línea uniformes
+					contenido = strings.ReplaceAll(contenido, "\r\n", "\n")
+
+					//contenido = strings.ReplaceAll(contenido, "\r\n", "\n") // Elimina saltos de línea
+					users := strings.Split(contenido, "\n")
+
+
 					for _, user := range users {
-						if user != "" {
-							// separar los valores
-							values := strings.Split(user, ",")
-							
-							// Verificar si es una línea de usuario y no de grupo
-							if len(values) >= 5 {
-								//fmt.Println(values) // para depuración
 
-								// verificar si el usuario y la contraseña son correctos
-								if values[3] == login.User && values[4] == login.Pass {
-									
-									//verificar si ya hay una sesión activa
-									if global.IsSessionActive(login.Id) {
-										//fmt.Println("YA HAY UNA SESION ACTIVA")
-										mensaje := "YA HAY UNA SESION ACTIVA, DEBE HACER LOGOUT EN " + login.Id
-										return mensaje, nil
-
-									} else {
-										//fmt.Println("USUARIO Y CONTRASEÑA CORRECTOS, SESION ACTIVA")	
-										global.ActivateSession(login.Id)
-										mensaje := "USUARIO Y CONTRASEÑA CORRECTOS, SESION ACTIVA EN " + login.Id
-										return mensaje, nil
-
-									}
+						values := strings.Split(user, ",")
+						if len(values) >= 5 && values[1] == "U" {
+							if values[3] == login.User && values[4] == login.Pass {
+								if global.IsSessionActive(login.Id) {
+									mensaje := "YA HAY UNA SESION ACTIVA, DEBE HACER LOGOUT EN " + login.Id
+									return mensaje, nil
 								} else {
-									//fmt.Println("USUARIO Y CONTRASEÑA INCORRECTOS")
-									return "USUARIO Y CONTRASEÑA INCORRECTOS", nil
+									global.ActivateSession(login.Id, login.User)
+									mensaje := "USUARIO Y CONTRASEÑA CORRECTOS, SESION ACTIVA EN " + login.Id+" PARA EL USUARIO "+login.User
+									return mensaje, nil
 								}
 							}
+
 						}
+
 					}
+					return "USUARIO Y CONTRASEÑA INCORRECTOS", nil
 
 				}
 
