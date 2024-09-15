@@ -490,7 +490,10 @@ fdisk -size=1 -type=P -unit=k -fit=FF -name="Particion2" -path="/home/mario/Escr
 mount -name="Particion2" -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/disks/Disco1.mia"
 mkfs -id=091A -type=full 
 login -user=root -pass=123 -id=091A
-mkfile -size=15 -path=/home/user/docs/a.txt -r
+mkdir -path=/home
+mkdir -path=/home/doc
+mkfile -size=15 -path=/home/doc/a.txt
+cat -file1=/home/doc/a.txt
 
 #mkdir -p -path=/home
 #mkdir -p -path=/home/user
@@ -500,3 +503,15 @@ mkfile -size=15 -path=/home/user/docs/a.txt -r
 
 
 rep -id=091A -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/output/superBloque.png" -name=sb
+
+
+
+mkdisk -size=5 -unit=k -fit=FF -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/disks/Disco1.mia"
+fdisk -size=1 -type=P -unit=k -fit=FF -name="Particion2" -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/disks/Disco1.mia"
+mount -name="Particion2" -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/disks/Disco1.mia"
+mkfs -id=091A -type=full 
+login -user=root -pass=123 -id=091A
+#mkdir -path=/home
+#mkdir -path=/home/doc
+mkfile -size=10 -path=a.txt
+cat -file1=a.txt

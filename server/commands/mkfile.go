@@ -130,6 +130,8 @@ func commandMkfile(mkfile *MKFILE) (string, error) {
 		mkfile.Cont = generateContent(mkfile.Size)
 	}
 
+	fmt.Println("\nContenido del archivo:", mkfile.Cont)
+
 	// Crear el archivo
 	err = createFile(mkfile.Path, mkfile.Size, mkfile.Cont, partitionSuperblock, partitionPath, mountedPartition)
 	if err != nil {
