@@ -138,6 +138,7 @@ func CommandCAT(cmd *CAT) (string, error){
 
 							//recorrer los bloques del inodo para obtener el contenido del archivo
 							fileBlock := &structures.FileBlock{}
+							salida := ""
 							for _, block := range inode.I_block{
 								if block != -1{
 									err = fileBlock.Deserialize(partitionPath, int64(partitionSuperblock.S_block_start+(block*partitionSuperblock.S_block_size)))
@@ -145,11 +146,11 @@ func CommandCAT(cmd *CAT) (string, error){
 										return "Error al obtener el bloque", fmt.Errorf("error al obtener el bloque: %v", err)
 									}
 									//eliminar caracteres nulos
-									salida := strings.Trim(string(fileBlock.B_content[:]), "\x00")
-									fmt.Println("Contenido del archivo:", salida)
-									return salida, nil
+									salida += strings.Trim(string(fileBlock.B_content[:]), "\x00")
+									// return salida, nil
 								}
-							}							
+							}
+							return salida, nil								
 						}
 						
 					}
@@ -253,6 +254,7 @@ func recursiveBlock(inode *structures.Inode, partitionSuperblock *structures.Sup
 
 							//recorrer los bloques del inodo para obtener el contenido del archivo
 							fileBlock := &structures.FileBlock{}
+							salida := ""
 							for _, block := range inode.I_block{
 								if block != -1{
 									err = fileBlock.Deserialize(partitionPath, int64(partitionSuperblock.S_block_start+(block*partitionSuperblock.S_block_size)))
@@ -260,11 +262,11 @@ func recursiveBlock(inode *structures.Inode, partitionSuperblock *structures.Sup
 										return "Error al obtener el bloque", fmt.Errorf("error al obtener el bloque: %v", err)
 									}
 									//eliminar caracteres nulos
-									salida := strings.Trim(string(fileBlock.B_content[:]), "\x00")
-									fmt.Println("Contenido del archivo:", salida)
-									return salida, nil
+									salida += strings.Trim(string(fileBlock.B_content[:]), "\x00")
+									// return salida, nil
 								}
-							}							
+							}
+							return salida, nil									
 						}
 					}
 				}
