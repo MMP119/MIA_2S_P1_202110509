@@ -1,7 +1,6 @@
 package structures
 
 import (
-	//"fmt"
 	utils "server/util"
 	"strings"
 	"time"
@@ -212,14 +211,10 @@ func (sb *SuperBlock) createFolderInInode(path string, inodeIndex int32, parents
 			return err
 		}
 
-
 		// Iterar sobre cada contenido del bloque, desde el index 2 porque los primeros dos son . y ..
 		for indexContent := 2; indexContent < len(block.B_content); indexContent++ {
-
 			// Obtener el contenido del bloque
 			content := block.B_content[indexContent]
-			//contenido := strings.Trim(string(content.B_name[:]), "\x00 ")
-			//fmt.Println(contenido)
 
 			// Sí las carpetas padre no están vacías debereamos buscar la carpeta padre más cercana
 			if len(parentsDir) != 0 {
