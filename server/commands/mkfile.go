@@ -131,9 +131,9 @@ func commandMkfile(mkfile *MKFILE) (string, error) {
 		mkfile.Cont = generateContent(mkfile.Size)
 	}
 
-	if mkfile.Cont != "" && mkfile.Size != 0 {
-		return "ERROR: no se puede proporcionar contenido y tamaño al mismo tiempo", errors.New("no se puede proporcionar contenido y tamaño al mismo tiempo")
-	}
+	// if mkfile.Cont != "" && mkfile.Size != 0 {
+	// 	return "ERROR: no se puede proporcionar contenido y tamaño al mismo tiempo", errors.New("no se puede proporcionar contenido y tamaño al mismo tiempo")
+	// }
 
 	if mkfile.Cont != "" && mkfile.Size == 0 {
 

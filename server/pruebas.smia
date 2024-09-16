@@ -473,6 +473,8 @@ rep -id=091B -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/out
 rep -id=091C -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/output/superBloque3.png" -name=sb
 
 
+
+
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------
 mkdisk -size=5 -unit=k -fit=FF -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/disks/Disco1.mia"
 fdisk -size=1 -type=P -unit=k -fit=FF -name="Particion2" -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/disks/Disco1.mia"
@@ -531,3 +533,80 @@ rmgrp -name=hola
 mkusr -user=user1 -pass=usuario -grp=usuarios
 rmusr -user=user1
 logout
+
+
+
+
+
+mkdisk -size=15 -unit=M -fit=FF -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/disks/Disco1.mia"
+
+fdisk -size=2 -type=P -unit=M -fit=FF -name="Particion1" -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/disks/Disco1.mia"
+fdisk -size=2 -type=P -unit=M -fit=FF -name="Particion2" -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/disks/Disco1.mia"
+fdisk -size=7 -type=E -unit=M -fit=FF -name="Particion3" -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/disks/Disco1.mia"
+fdisk -size=1 -type=P -unit=M -fit=FF -name="Particion4" -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/disks/Disco1.mia"
+
+fdisk -size=1 -type=L -unit=M -fit=FF -name="Particion5" -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/disks/Disco1.mia"
+fdisk -size=1 -type=L -unit=M -fit=FF -name="Particion6" -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/disks/Disco1.mia"
+
+
+mount -name="Particion2" -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/disks/Disco1.mia"
+mount -name="Particion1" -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/disks/Disco1.mia"
+mount -name="Particion4" -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/disks/Disco1.mia"
+
+
+mkfs -id=091A -type=full 
+mkfs -id=092A 
+
+login -user=root -pass=123 -id=091A
+mkgrp -name=hola
+mkusr -user=user1 -pass=usuario -grp=usuarios
+
+mkdir -path=/home
+
+rep -id=091A -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/output/disco1.png" -name=disk
+rep -id=091A -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/output/inode1.png" -name=inode
+rep -id=091A -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/output/bm_inode1.txt" -name=bm_inode
+rep -id=091A -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/output/mbr1.png" -name=mbr
+rep -id=091A -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/output/sb1.png" -name=sb
+
+
+
+
+-------------------------------------- FUNCIONANDO CORRECTAMENTE ----------------------------------------------------------------
+
+mkdisk -size=15 -unit=M -fit=FF -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/disks/Disco1.mia"
+
+fdisk -size=2 -type=P -unit=M -fit=FF -name="Particion1" -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/disks/Disco1.mia"
+fdisk -size=2 -type=P -unit=M -fit=FF -name="Particion2" -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/disks/Disco1.mia"
+fdisk -size=7 -type=E -unit=M -fit=FF -name="Particion3" -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/disks/Disco1.mia"
+fdisk -size=1 -type=P -unit=M -fit=FF -name="Particion4" -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/disks/Disco1.mia"
+
+fdisk -size=1 -type=L -unit=M -fit=FF -name="Particion5" -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/disks/Disco1.mia"
+fdisk -size=1 -type=L -unit=M -fit=FF -name="Particion6" -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/disks/Disco1.mia"
+
+
+mount -name="Particion2" -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/disks/Disco1.mia"
+mount -name="Particion1" -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/disks/Disco1.mia"
+mount -name="Particion4" -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/disks/Disco1.mia"
+
+
+mkfs -id=091A -type=full 
+mkfs -id=092A 
+
+login -user=root -pass=123 -id=091A
+mkgrp -name=hola
+mkusr -user=user1 -pass=usuario -grp=usuarios
+
+mkdir -path=/home
+mkdir -path=/home/user
+mkdir -path=/home/user/usac
+mkdir -path=/home/user/usac/doc
+mkfile -size=15 -path=/home/user/usac/doc/a.txt
+mkfile -path=/home/user/usac/b.txt -cont=/home/mario/Descargas/docs/b.txt
+cat -file1=/home/user/usac/doc/a.txt -file2=/home/user/usac/b.txt
+
+rep -id=091A -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/output/disco1.png" -name=disk
+rep -id=091A -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/output/inode1.png" -name=inode
+rep -id=091A -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/output/bm_inode1.txt" -name=bm_inode
+rep -id=091A -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/output/mbr1.png" -name=mbr
+rep -id=091A -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/output/sb1.png" -name=sb

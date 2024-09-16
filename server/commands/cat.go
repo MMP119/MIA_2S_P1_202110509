@@ -10,10 +10,9 @@ import (
 	"strings"
 )
 
-type CAT struct{
+type CAT struct {
 	Filen string
 }
-
 
 func ParseCat(tokens []string) (*CAT, string, error) {
 	cmd := &CAT{}
@@ -58,22 +57,21 @@ func ParseCat(tokens []string) (*CAT, string, error) {
 		}
 
 		// Concatenar el contenido al acumulador
-		allContent.WriteString(content)
+		allContent.WriteString(content+"\n")
 	}
-
 	// Retornar el contenido concatenado
-	return cmd, "Comando CAT: realizado correctamente\n" + allContent.String(), nil
+	return cmd, "Comando CAT: realizado correctamente\n LECTURA: \n" + allContent.String(), nil
 }
 
-func CommandCAT(cmd *CAT) (string, error){
-	
+func CommandCAT(cmd *CAT) (string, error) {
+
 	// leer un archivo que esté en la ruta especificada dentro del bloque
 	// inodo -> bloque -> contenido
 
 	//la ruta del archivo es cmd.Filen, donde está el inodo -> bloque -> contenido
-	parentDirs, destDir := utils.GetParentDirectories(cmd.Filen) 
-	fmt.Println("\nDirectorios padres hacia el archivo:", parentDirs) //-> arreglo de strings de los directorios padres [home user docs ...] 
-	fmt.Println("Directorio destino (archivo):", destDir) //-> nombre del archivo a.txt por ejemplo
+	parentDirs, destDir := utils.GetParentDirectories(cmd.Filen)
+	fmt.Println("\nDirectorios padres hacia el archivo:", parentDirs) //-> arreglo de strings de los directorios padres [home user docs ...]
+	fmt.Println("Directorio destino (archivo):", destDir)             //-> nombre del archivo a.txt por ejemplo
 
 	//obtener el id de la particion donde se está logueado
 	idPartition := global.GetIDSession()
@@ -92,9 +90,9 @@ func CommandCAT(cmd *CAT) (string, error){
 	}
 
 	//recorrer los bloques del inodo raíz
-	for _, block := range inode.I_block{
+	for _, block := range inode.I_block {
 
-		if block != -1{
+		if block != -1 {
 
 			//verificar sobre los bloques del inodo, recorrerlos para encontar el bloque que contiene la ruta para llegar al archivo
 			folderBlock := &structures.FolderBlock{}
@@ -105,16 +103,16 @@ func CommandCAT(cmd *CAT) (string, error){
 			}
 
 			//recorrer los contenidos del bloque
-			for _, content := range folderBlock.B_content{
+			for _, content := range folderBlock.B_content {
 				//fmt.Println(strings.Trim(string(content.B_name[:]), "\x00"))
 
-				if content.B_inodo != -1 && content.B_inodo != 0 && strings.Trim(string(content.B_name[:]), "\x00") != "." && strings.Trim(string(content.B_name[:]), "\x00") != ".." && strings.Trim(string(content.B_name[:]), "\x00") != "users.txt"{
+				if content.B_inodo != -1 && content.B_inodo != 0 && strings.Trim(string(content.B_name[:]), "\x00") != "." && strings.Trim(string(content.B_name[:]), "\x00") != ".." && strings.Trim(string(content.B_name[:]), "\x00") != "users.txt" {
 					//fmt.Println("Bloque encontrado:", content.B_inodo, string(content.B_name[:]))
 
-					for i := 0; i < len(parentDirs); i++{
+					for i := 0; i < len(parentDirs); i++ {
 						//fmt.Println("Directorio a buscar:", parentDirs[i])
 
-						if strings.Trim(string(content.B_name[:]), "\x00") == parentDirs[i]{
+						if strings.Trim(string(content.B_name[:]), "\x00") == parentDirs[i] {
 							//fmt.Println("Directorio encontrado:", parentDirs[i])
 							//vamos al inodo que apunte el bloque
 							err = inode.Deserialize(partitionPath, int64(partitionSuperblock.S_inode_start+(content.B_inodo*partitionSuperblock.S_inode_size)))
@@ -126,9 +124,10 @@ func CommandCAT(cmd *CAT) (string, error){
 							if err != nil {
 								return msg, err
 							}
+							return msg, nil
 
 						}
-						if strings.Trim(string(content.B_name[:]), "\x00") == destDir{
+						if strings.Trim(string(content.B_name[:]), "\x00") == destDir {
 							//fmt.Println("Archivo encontrado:", destDir)
 							//moverse al inodo que apunta el bloque
 							err = inode.Deserialize(partitionPath, int64(partitionSuperblock.S_inode_start+(content.B_inodo*partitionSuperblock.S_inode_size)))
@@ -139,8 +138,8 @@ func CommandCAT(cmd *CAT) (string, error){
 							//recorrer los bloques del inodo para obtener el contenido del archivo
 							fileBlock := &structures.FileBlock{}
 							salida := ""
-							for _, block := range inode.I_block{
-								if block != -1{
+							for _, block := range inode.I_block {
+								if block != -1 {
 									err = fileBlock.Deserialize(partitionPath, int64(partitionSuperblock.S_block_start+(block*partitionSuperblock.S_block_size)))
 									if err != nil {
 										return "Error al obtener el bloque", fmt.Errorf("error al obtener el bloque: %v", err)
@@ -150,12 +149,12 @@ func CommandCAT(cmd *CAT) (string, error){
 									// return salida, nil
 								}
 							}
-							return salida, nil								
+							return salida, nil
 						}
-						
+
 					}
 
-					if strings.Trim(string(content.B_name[:]), "\x00") == destDir{
+					if strings.Trim(string(content.B_name[:]), "\x00") == destDir {
 						//fmt.Println("Archivo encontrado:", destDir)
 						//moverse al inodo que apunta el bloque
 						err = inode.Deserialize(partitionPath, int64(partitionSuperblock.S_inode_start+(content.B_inodo*partitionSuperblock.S_inode_size)))
@@ -166,8 +165,8 @@ func CommandCAT(cmd *CAT) (string, error){
 						//recorrer los bloques del inodo para obtener el contenido del archivo
 						fileBlock := &structures.FileBlock{}
 						salida := ""
-						for _, block := range inode.I_block{
-							if block != -1{
+						for _, block := range inode.I_block {
+							if block != -1 {
 								err = fileBlock.Deserialize(partitionPath, int64(partitionSuperblock.S_block_start+(block*partitionSuperblock.S_block_size)))
 								if err != nil {
 									return "Error al obtener el bloque", fmt.Errorf("error al obtener el bloque: %v", err)
@@ -177,9 +176,8 @@ func CommandCAT(cmd *CAT) (string, error){
 								// return salida, nil
 							}
 						}
-						return salida, nil							
+						return salida, nil
 					}
-
 
 				}
 			}
@@ -188,38 +186,37 @@ func CommandCAT(cmd *CAT) (string, error){
 	}
 
 	err = partitionSuperblock.Serialize(partitionPath, int64(partition.Part_start))
-		if err != nil {
-			return "error al serializar el superbloque de la partición",fmt.Errorf("error al serializar el superbloque de la partición: %v", err)
-		}
+	if err != nil {
+		return "error al serializar el superbloque de la partición", fmt.Errorf("error al serializar el superbloque de la partición: %v", err)
+	}
 
-		return "",nil
+	return "", nil
 
 }
 
-
-//funcion recursiva para analizar los bloques de un inodo y moverse al bloque
-func recursiveBlock(inode *structures.Inode, partitionSuperblock *structures.SuperBlock, partitionPath string, parentDirs []string, destDir string) (string, error){
+// funcion recursiva para analizar los bloques de un inodo y moverse al bloque
+func recursiveBlock(inode *structures.Inode, partitionSuperblock *structures.SuperBlock, partitionPath string, parentDirs []string, destDir string) (string, error) {
 	//verificar sobre los bloques del inodo, recorrerlos para encontar el bloque que contiene la ruta para llegar al archivo
 	folderBlock := &structures.FolderBlock{}
 
 	//recorrer los bloques del inodo raíz
-	for _, block := range inode.I_block{
-		if block != -1{
+	for _, block := range inode.I_block {
+		if block != -1 {
 			err := folderBlock.Deserialize(partitionPath, int64(partitionSuperblock.S_block_start+(block*partitionSuperblock.S_block_size)))
 			if err != nil {
 				return "Error al obtener el bloque", fmt.Errorf("error al obtener el bloque: %v", err)
 			}
 
 			//recorrer los contenidos del bloque
-			for _, content := range folderBlock.B_content{
+			for _, content := range folderBlock.B_content {
 
-				if content.B_inodo != -1 && content.B_inodo != 0{
+				if content.B_inodo != -1 && content.B_inodo != 0 {
 
-					for i := 0; i < len(parentDirs); i++{
+					for i := 0; i < len(parentDirs); i++ {
 
-						if strings.Trim(string(content.B_name[:]), "\x00") == parentDirs[i]{
+						if strings.Trim(string(content.B_name[:]), "\x00") == parentDirs[i] {
 							fmt.Println("Directorio encontrado RECURSIVA:", parentDirs[i])
-							
+
 							//vamos al inodo que apunte el bloque
 							err = inode.Deserialize(partitionPath, int64(partitionSuperblock.S_inode_start+(content.B_inodo*partitionSuperblock.S_inode_size)))
 							if err != nil {
@@ -227,24 +224,26 @@ func recursiveBlock(inode *structures.Inode, partitionSuperblock *structures.Sup
 							}
 
 							//si ya llegamos al último directorio padre, entonces inodo que apunta el bloque tiene el bloque que contiene el archivo
-							if i == len(parentDirs)-1{
+							if i == len(parentDirs)-1 {
 								msg := ""
 								msg, err = recursiveBlock(inode, partitionSuperblock, partitionPath, parentDirs, destDir)
 								if err != nil {
 									return msg, err
 								}
+								return msg, nil
 
-							}else{
+							} else {
 								//si no, entonces seguimos buscando en otro bloque del inodo
 								msg := ""
 								msg, err = recursiveBlock(inode, partitionSuperblock, partitionPath, parentDirs, destDir)
 								if err != nil {
 									return msg, err
 								}
+								return msg, nil
 							}
 
 						}
-						if strings.Trim(string(content.B_name[:]), "\x00") == destDir{
+						if strings.Trim(string(content.B_name[:]), "\x00") == destDir {
 							fmt.Println("Archivo encontrado RECURSIVA:", destDir)
 							//moverse al inodo que apunta el bloque
 							err = inode.Deserialize(partitionPath, int64(partitionSuperblock.S_inode_start+(content.B_inodo*partitionSuperblock.S_inode_size)))
@@ -255,18 +254,18 @@ func recursiveBlock(inode *structures.Inode, partitionSuperblock *structures.Sup
 							//recorrer los bloques del inodo para obtener el contenido del archivo
 							fileBlock := &structures.FileBlock{}
 							salida := ""
-							for _, block := range inode.I_block{
-								if block != -1{
+							for _, block := range inode.I_block {
+								if block != -1 {
 									err = fileBlock.Deserialize(partitionPath, int64(partitionSuperblock.S_block_start+(block*partitionSuperblock.S_block_size)))
 									if err != nil {
 										return "Error al obtener el bloque", fmt.Errorf("error al obtener el bloque: %v", err)
 									}
 									//eliminar caracteres nulos
 									salida += strings.Trim(string(fileBlock.B_content[:]), "\x00")
-									// return salida, nil
+									//return salida, nil
 								}
 							}
-							return salida, nil									
+							return salida, nil
 						}
 					}
 				}
@@ -275,6 +274,6 @@ func recursiveBlock(inode *structures.Inode, partitionSuperblock *structures.Sup
 		}
 	}
 
-	return "No se encontró el archivo",nil
+	return "No se encontró el archivo", nil
 
 }
