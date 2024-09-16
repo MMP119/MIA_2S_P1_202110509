@@ -61,6 +61,14 @@ func Analyzer(inputs []string) ([]string, []string) {
             _, msg, err = commands.ParseMkfile(tokens[1:])
         case "mkgrp":
             _, msg, err = commands.ParseMkgrp(tokens[1:])
+        case "rmgrp":
+            _, msg, err = commands.ParseRmgrp(tokens[1:])
+        case "mkusr":
+            _, msg, err = commands.ParseMkusr(tokens[1:])
+        case "rmusr":
+            _, msg, err = commands.ParseRmusr(tokens[1:])
+        case "chgrp":
+            _, msg, err = commands.ParseChgrp(tokens[1:])
         case "clear":
             cmd := exec.Command("clear")
             cmd.Stdout = os.Stdout

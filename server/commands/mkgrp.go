@@ -23,7 +23,7 @@ func ParseMkgrp(tokens []string)(*MKGRP, string, error){
 	// Unir tokens en una sola cadena y luego dividir por espacios, respetando las comillas
 	args := strings.Join(tokens, " ")
 	// Expresión regular para encontrar los parámetros del comando mkfile
-	re := regexp.MustCompile(`-name="[^"]+"|-name=[^\s]+`)
+	re := regexp.MustCompile(`(?i)-name="[^"]+"|(?i)-name=[^\s]+`)
 	// Encuentra todas las coincidencias de la expresión regular en la cadena de argumentos
 	matches := re.FindAllString(args, -1)
 
@@ -59,114 +59,124 @@ func ParseMkgrp(tokens []string)(*MKGRP, string, error){
 		return nil, msg, err
 	}
 
-	return cmd, "", nil
+	return cmd, msg, nil
 
 }
 
 
 func CommandMkgrp(cmd *MKGRP) (string, error) {
 	idPartition := global.GetIDSession()
-	fmt.Println("ID de partición:", idPartition)
 
+	usuario := global.GetUserActive(idPartition)
+
+	//verificar que el usuario sea el root
+	if usuario != "root" {
+		return "Error: el usuario no es root", errors.New("el usuario no es root")
+	}
+
+	// Obtener la partición con el id en donde se realizará el login
 	partitionSuperblock, _, partitionPath, err := global.GetMountedPartitionSuperblock(idPartition)
 	if err != nil {
 		return "Error al obtener la partición montada en el comando login", fmt.Errorf("error al obtener la partición montada: %v", err)
 	}
-	fmt.Println("Ruta de partición:", partitionPath)
 
 	inode := &structures.Inode{}
+
+	// Deserializar el inodo raíz
 	err = inode.Deserialize(partitionPath, int64(partitionSuperblock.S_inode_start+(0*partitionSuperblock.S_inode_size)))
 	if err != nil {
-		return "error al obtener el inodo raiz", fmt.Errorf("error al obtener el inodo raiz: %v", err)
+		return "Error al obtener el inodo raíz", fmt.Errorf("error al obtener el inodo raíz: %v", err)
 	}
-	fmt.Println("Inodo raíz obtenido exitosamente")
 
+	// Verificar que el primer i-nodo esté en cero
 	if inode.I_block[0] == 0 {
-		fmt.Println("El primer inodo está en cero, moviéndose al bloque 0")
+		// Moverme al bloque 0
 		folderBlock := &structures.FolderBlock{}
+
 		err = folderBlock.Deserialize(partitionPath, int64(partitionSuperblock.S_block_start+(inode.I_block[0]*partitionSuperblock.S_block_size)))
 		if err != nil {
 			return "Error al obtener el bloque 0", fmt.Errorf("error al obtener el bloque 0: %v", err)
 		}
 
-		var usersFileInodeIndex int64
-		foundUsersFile := false
+		// Recorrer los contenidos del bloque 0
 		for _, contenido := range folderBlock.B_content {
-			name := strings.Trim(string(contenido.B_name[:]), "\x00")
+			name := strings.Trim(string(contenido.B_name[:]), "\x00") // Elimina caracteres nulos
+			apuntador := contenido.B_inodo
 			if name == "users.txt" {
-				usersFileInodeIndex = int64(contenido.B_inodo)
-				foundUsersFile = true
-				break
-			}
-		}
 
-		if !foundUsersFile {
-			return "El archivo users.txt no se encontró en el bloque 0", nil
-		}
+				// Moverme al inodo que apunta el contenido
+				err = inode.Deserialize(partitionPath, int64(partitionSuperblock.S_inode_start+(apuntador*partitionSuperblock.S_inode_size)))
+				if err != nil {
+					return "Error al obtener el inodo del archivo users.txt", fmt.Errorf("error al obtener el inodo del archivo users.txt: %v", err)
+				}
 
-		fmt.Println("Archivo users.txt encontrado con inodo:", usersFileInodeIndex)
+				// Verificar que el primer i-nodo esté en 1
+				if inode.I_block[0] == 1 {
+					// Moverme al bloque 1
+					fileBlock := &structures.FileBlock{}
 
-		err = inode.Deserialize(partitionPath, int64(partitionSuperblock.S_inode_start)+(usersFileInodeIndex*int64(partitionSuperblock.S_inode_size)))
-		if err != nil {
-			return "Error al obtener el inodo del archivo users.txt", fmt.Errorf("error al obtener el inodo del archivo users.txt: %v", err)
-		}
-
-		if inode.I_block[0] == 1 {
-			fmt.Println("El primer inodo está en 1, moviéndose al bloque 1")
-			fileBlock := &structures.FileBlock{}
-			err = fileBlock.Deserialize(partitionPath, int64(partitionSuperblock.S_block_start+(inode.I_block[0]*partitionSuperblock.S_block_size)))
-			if err != nil {
-				return "error al obtener el bloque 1 del archivo users.txt", fmt.Errorf("error al obtener el bloque 1 del archivo users.txt: %v", err)
-			}
-
-			users := strings.Split(strings.TrimSpace(string(fileBlock.B_content[:])), "\n")
-			fmt.Println("Contenido actual de users.txt:", users)
-
-			newGroupName := cmd.Name
-			for _, user := range users {
-				if user != "" {
-					values := strings.Split(user, ",")
-					if len(values) > 1 && values[1] == "G" && values[2] == newGroupName {
-						return "El grupo ya existe", nil
+					err = fileBlock.Deserialize(partitionPath, int64(partitionSuperblock.S_block_start+(inode.I_block[0]*partitionSuperblock.S_block_size)))
+					if err != nil {
+						return "Error al obtener el bloque 1 del archivo users.txt", fmt.Errorf("error al obtener el bloque 1 del archivo users.txt: %v", err)
 					}
+
+					// Obtener el contenido del archivo users.txt
+					contenido := strings.Trim(string(fileBlock.B_content[:]), "\x00") // Elimina caracteres nulos
+
+					// Reemplazar \r\n con \n para asegurar saltos de línea uniformes
+					contenido = strings.ReplaceAll(contenido, "\r\n", "\n")
+
+					// Dividir en líneas para obtener cada usuario o grupo
+					lines := strings.Split(contenido, "\n")
+
+					// Variable para almacenar el último número de grupo
+					maxGroupNumber := 0
+
+					// Recorrer cada línea del archivo users.txt
+					for _, line := range lines {
+						if strings.TrimSpace(line) == "" {
+							continue // Ignorar líneas vacías
+						}
+
+						values := strings.Split(line, ",")
+
+						// Verificar si es un grupo (values[1] == "G") y obtener el número del grupo (values[0])
+						if len(values) >= 3 && values[1] == "G" {
+							// Intentar convertir el número del grupo a entero
+							groupNumber, err := strconv.Atoi(values[0])
+							if err == nil && groupNumber > maxGroupNumber {
+								maxGroupNumber = groupNumber // Actualizar el mayor número de grupo encontrado
+							}
+						}
+					}
+
+					// Incrementar el número de grupo para el nuevo grupo
+					newGroupNumber := maxGroupNumber + 1
+
+					// Formatear la nueva línea del grupo
+					newGroupLine := fmt.Sprintf("%d,G,%s\n", newGroupNumber, cmd.Name)
+
+					// Añadir el nuevo grupo al contenido
+					contenido += newGroupLine
+
+					// Escribir el contenido actualizado en el bloque del archivo
+					copy(fileBlock.B_content[:], contenido)
+
+					// Guardar los cambios en el archivo
+					err = fileBlock.Serialize(partitionPath, int64(partitionSuperblock.S_block_start+(inode.I_block[0]*partitionSuperblock.S_block_size)))
+					if err != nil {
+						return "Error al escribir el bloque 1 del archivo users.txt", fmt.Errorf("error al escribir el bloque 1 del archivo users.txt: %v", err)
+					}
+					fmt.Println("-----------CREAR GRUPO--------------")
+					fileBlock.Print()
+					fmt.Println("---------------------------")
+					return "Comando MKGRP: realizado con correctamente, Grupo añadido con éxito", nil
 				}
 			}
-
-			lastNumber := 0
-			for _, user := range users {
-				if user != "" {
-					values := strings.Split(user, ",")
-					num, err := strconv.Atoi(values[0])
-					if err == nil && num > lastNumber {
-						lastNumber = num
-					}
-				}
-			}
-
-			fmt.Println("Último número encontrado:", lastNumber)
-
-			newGroupEntry := fmt.Sprintf("%d,G,%s\n", lastNumber+1, newGroupName)
-			users = append(users, newGroupEntry)
-			copy(fileBlock.B_content[:], []byte(strings.Join(users, "\n")))
-
-			fmt.Println("Contenido a escribir en users.txt:", string(fileBlock.B_content[:]))
-
-			err = fileBlock.Serialize(partitionPath, int64(partitionSuperblock.S_block_start+(inode.I_block[0]*partitionSuperblock.S_block_size)))
-			if err != nil {
-				return "Error al actualizar el bloque 1 del archivo users.txt", fmt.Errorf("error al actualizar el bloque 1 del archivo users.txt: %v", err)
-			}
-
-			err = fileBlock.Deserialize(partitionPath, int64(partitionSuperblock.S_block_start+(inode.I_block[0]*partitionSuperblock.S_block_size)))
-			if err != nil {
-				return "Error al volver a obtener el bloque 1 del archivo users.txt", fmt.Errorf("error al volver a obtener el bloque 1 del archivo users.txt: %v", err)
-			}
-			updatedUsers := strings.Split(strings.TrimSpace(string(fileBlock.B_content[:])), "\n")
-			fmt.Println("Contenido actualizado de users.txt:", updatedUsers)
-
-			fmt.Println("Grupo creado exitosamente")
-			return "Grupo creado exitosamente", nil
 		}
 	}
 
-	return "Error en la estructura del sistema de archivos", nil
+	return "", nil
 }
+
+

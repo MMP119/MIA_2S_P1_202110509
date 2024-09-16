@@ -77,6 +77,22 @@ func GetIDSession() string {
     return ""
 }
 
+// Funcion para obtener el user que está activo en una partición
+func GetUserActive(partitionID string) string {
+    mutex.Lock()
+    defer mutex.Unlock()
+
+    if users, exists := sessionMap[partitionID]; exists {
+        for user, active := range users {
+            if active {
+                return user
+            }
+        }
+    }
+    return ""
+}
+
+
 // Función para obtener una lista de usuarios activos en una partición específica
 func GetActiveUsers(partitionID string) []string {
     mutex.Lock()
