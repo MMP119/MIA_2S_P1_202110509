@@ -188,6 +188,11 @@ func CommandRep(rep *REP) (string, error) {
 		if err != nil {
 			fmt.Printf("Error: %v\n", err)
 		}
+	case "file":
+		err = reports.ReportFile(mountedSb, rep.Path, rep.path_file_ls)
+		if err != nil {
+			fmt.Printf("Error: %v\n", err)
+		}
 
 	}
 
