@@ -610,3 +610,4 @@ rep -id=091A -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/out
 rep -id=091A -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/output/bm_inode1.txt" -name=bm_inode
 rep -id=091A -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/output/mbr1.png" -name=mbr
 rep -id=091A -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/output/sb1.png" -name=sb
+rep -id=091A -path="/home/mario/Escritorio/GitHub/MIA_2S_P1_202110509/server/output/block1.png" -name=block

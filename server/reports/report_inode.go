@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-// ReportInode genera un reporte de un inodo y lo guarda en la ruta especificada
+
 func ReportInode(superblock *structures.SuperBlock, diskPath string, path string) error {
 	// Crear las carpetas padre si no existen
 	err := utils.CreateParentDirs(path)
@@ -42,16 +42,16 @@ func ReportInode(superblock *structures.SuperBlock, diskPath string, path string
 		// Definir el contenido DOT para el inodo actual
 		dotContent += fmt.Sprintf(`inode%d [label=<
             <table border="0" cellborder="1" cellspacing="0">
-                <tr><td colspan="2"> REPORTE INODO %d </td></tr>
-                <tr><td>i_uid</td><td>%d</td></tr>
-                <tr><td>i_gid</td><td>%d</td></tr>
-                <tr><td>i_size</td><td>%d</td></tr>
-                <tr><td>i_atime</td><td>%s</td></tr>
-                <tr><td>i_ctime</td><td>%s</td></tr>
-                <tr><td>i_mtime</td><td>%s</td></tr>
-                <tr><td>i_type</td><td>%c</td></tr>
-                <tr><td>i_perm</td><td>%s</td></tr>
-                <tr><td colspan="2">BLOQUES DIRECTOS</td></tr>
+                <tr><td colspan="2" bgcolor = "lightblue"> REPORTE INODO %d </td></tr>
+                <tr><td bgcolor = "lightblue1">i_uid</td><td>%d</td></tr>
+                <tr><td bgcolor = "lightblue1">i_gid</td><td>%d</td></tr>
+                <tr><td bgcolor = "lightblue1">i_size</td><td>%d</td></tr>
+                <tr><td bgcolor = "lightblue1">i_atime</td><td>%s</td></tr>
+                <tr><td bgcolor = "lightblue1">i_ctime</td><td>%s</td></tr>
+                <tr><td bgcolor = "lightblue1">i_mtime</td><td>%s</td></tr>
+                <tr><td bgcolor = "lightblue1">i_type</td><td>%c</td></tr>
+                <tr><td bgcolor = "lightblue1">i_perm</td><td>%s</td></tr>
+                <tr><td colspan="2" bgcolor = "lightblue">BLOQUES DIRECTOS</td></tr>
             `, i, i, inode.I_uid, inode.I_gid, inode.I_size, atime, ctime, mtime, rune(inode.I_type[0]), string(inode.I_perm[:]))
 
 		// Agregar los bloques directos a la tabla hasta el índice 11
@@ -59,17 +59,17 @@ func ReportInode(superblock *structures.SuperBlock, diskPath string, path string
 			if j > 11 {
 				break
 			}
-			dotContent += fmt.Sprintf("<tr><td>%d</td><td>%d</td></tr>", j+1, block)
+			dotContent += fmt.Sprintf(`<tr><td bgcolor = "lightblue1">%d</td><td>%d</td></tr>`, j+1, block)
 		}
 
 		// Agregar los bloques indirectos a la tabla
 		dotContent += fmt.Sprintf(`
-                <tr><td colspan="2">BLOQUE INDIRECTO</td></tr>
-                <tr><td>%d</td><td>%d</td></tr>
-                <tr><td colspan="2">BLOQUE INDIRECTO DOBLE</td></tr>
-                <tr><td>%d</td><td>%d</td></tr>
-                <tr><td colspan="2">BLOQUE INDIRECTO TRIPLE</td></tr>
-                <tr><td>%d</td><td>%d</td></tr>
+                <tr><td colspan="2" bgcolor = "lightblue">BLOQUE INDIRECTO</td></tr>
+                <tr><td bgcolor = "lightblue1">%d</td><td>%d</td></tr>
+                <tr><td colspan="2" bgcolor = "lightblue">BLOQUE INDIRECTO DOBLE</td></tr>
+                <tr><td bgcolor = "lightblue1">%d</td><td>%d</td></tr>
+                <tr><td colspan="2" bgcolor = "lightblue">BLOQUE INDIRECTO TRIPLE</td></tr>
+                <tr><td bgcolor = "lightblue1">%d</td><td>%d</td></tr>
             </table>>];
         `, 13, inode.I_block[12], 14, inode.I_block[13], 15, inode.I_block[14])
 
